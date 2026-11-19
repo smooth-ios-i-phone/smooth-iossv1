@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#060911">
+  <title>Smooth iOS Optimizer | Admin Control Panel</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-primary: #060911;
+      --bg-secondary: #0c1220;
+      --bg-card: rgba(16, 24, 40, 0.75);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --border-glass-light: rgba(255, 255, 255, 0.15);
+      --cyan-neon: #00f2fe;
+      --purple-neon: #9d4edd;
+      --green-neon: #10b981;
+      --amber-neon: #f59e0b;
+      --red-neon: #ef4444;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", Menlo, Consolas, monospace;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body.admin-dark-theme {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    .ambient-glow {
+      position: fixed; border-radius: 50%; filter: blur(100px); z-index: -2; pointer-events: none; opacity: 0.35;
+    }
+    .glow-1 { width: 350px; height: 350px; top: -50px; right: -50px; background: radial-gradient(circle, #00f2fe, #4facfe); }
+    .glow-admin { width: 400px; height: 400px; top: 20%; left: 20%; background: radial-gradient(circle, rgba(16, 185, 129, 0.2), rgba(0, 242, 254, 0.15)); }
+
+    .admin-login-wrapper {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .login-box { max-width: 420px; width: 100%; }
+
+    .admin-logo-badge {
+      width: 58px; height: 58px; border-radius: 16px;
+      background: linear-gradient(135deg, #00f2fe, #10b981); color: #070a11;
+      font-size: 1.6rem; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px; box-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+    }
+
+    .login-header h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
+    .login-header p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px; }
+
+    .admin-dashboard { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .admin-header {
+      display: flex; align-items: center; justify-content: space-between; padding: 16px 24px;
+      background: rgba(13, 20, 36, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass-light); border-radius: var(--radius-lg); margin-bottom: 24px;
+    }
+    .admin-brand { display: flex; align-items: center; gap: 14px; }
+    .admin-pill-logo {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, #10b981, #00f2fe); color: #060911;
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+    }
+    .admin-brand h3 { font-size: 1.15rem; font-weight: 800; }
+    .admin-status-badge { font-size: 0.72rem; color: var(--green-neon); display: flex; align-items: center; gap: 6px; }
+
+    .glass-btn-sm {
+      background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-glass-light);
+      color: var(--text-primary); padding: 8px 14px; border-radius: var(--radius-sm);
+      font-size: 0.78rem; font-weight: 600; text-decoration: none; cursor: pointer; display: flex; align-items: center; gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .glass-btn-sm:hover { background: rgba(255, 255, 255, 0.15); }
+
+    .admin-stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;
+    }
+    .admin-stat-card {
+      background: rgba(16, 24, 40, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass); border-radius: var(--radius-lg); padding: 20px;
+    }
+    .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .stat-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; }
+    .stat-big-val { font-size: 2rem; font-weight: 800; font-family: var(--font-mono); color: #fff; margin-bottom: 6px; }
+    .stat-sub-text { font-size: 0.75rem; color: var(--text-secondary); }
+
+    .admin-nav-tabs {
+      display: flex; gap: 8px; border-bottom: 1px solid var(--border-glass); padding-bottom: 12px; margin-bottom: 24px; overflow-x: auto;
+    }
+    .adm-tab-btn {
+      background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-glass);
+      color: var(--text-secondary); padding: 10px 18px; border-radius: var(--radius-md);
+      font-size: 0.85rem; font-weight: 700; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .adm-tab-btn.active {
+      background: rgba(0, 242, 254, 0.15); border-color: var(--cyan-neon); color: #fff; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+    }
+    .admin-tab-pane { display: none; }
+    .admin-tab-pane.active { display: block; }
+
+    .glass-card {
+      background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .card-head h3 { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+
+    .key-gen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: flex-end; }
+    .gen-btn-col { display: flex; flex-direction: column; }
+    .latest-keys-box { margin-top: 20px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 16px; }
+    .new-key-chip { background: rgba(0, 0, 0, 0.5); padding: 8px 14px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.9rem; color: #fff; display: inline-flex; align-items: center; gap: 10px; margin: 4px 6px 4px 0; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .copy-key-btn { background: none; border: none; color: var(--cyan-neon); cursor: pointer; font-size: 0.9rem; }
+
+    .table-responsive { overflow-x: auto; margin-top: 14px; }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left; }
+    .admin-table th { padding: 12px 14px; background: rgba(0, 0, 0, 0.3); color: var(--text-muted); font-weight: 700; border-bottom: 1px solid var(--border-glass-light); }
+    .admin-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-glass); color: var(--text-secondary); }
+    .admin-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    .key-code { font-family: var(--font-mono); color: var(--cyan-neon); font-weight: 700; }
+    .hwid-tag { font-family: var(--font-mono); font-size: 0.72rem; background: rgba(0, 0, 0, 0.4); padding: 3px 8px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--border-glass); }
+    .status-badge-active { background: rgba(16, 185, 129, 0.15); color: var(--green-neon); padding: 3px 8px; border-radius: 6px; font-weight: 700; }
+    .status-badge-unused { background: rgba(245, 158, 11, 0.15); color: var(--amber-neon); padding: 3px 8px; border-radius: 6px; font-weight: 700; }
+    .tbl-action-btn { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-glass); color: var(--text-secondary); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; margin-right: 4px; }
+    .tbl-action-btn.del:hover { background: rgba(239, 68, 68, 0.2); color: var(--red-neon); }
+
+    .ios-switch { position: relative; display: inline-block; width: 54px; height: 30px; }
+    .ios-switch input { opacity: 0; width: 0; height: 0; }
+    .ios-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); transition: .3s; border-radius: 34px; }
+    .ios-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    .ios-switch input:checked + .ios-slider { background: linear-gradient(135deg, #10b981, #00f2fe); border-color: #10b981; }
+    .ios-switch input:checked + .ios-slider:before { transform: translateX(24px); }
+
+    .input-field-group { margin-bottom: 14px; text-align: left; }
+    .input-field-group label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .glass-input { width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-glass-light); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.85rem; padding: 12px 14px; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s; }
+    .glass-input:focus { border-color: var(--cyan-neon); }
+    .glass-textarea { width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-glass-light); color: var(--text-primary); font-family: var(--font-main); font-size: 0.85rem; padding: 10px 14px; border-radius: var(--radius-sm); outline: none; }
+    .cyber-btn { background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #070a11; border: none; font-family: var(--font-main); font-weight: 700; font-size: 0.85rem; padding: 12px 20px; border-radius: var(--radius-md); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s; }
+    .cyber-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3); }
+    .cyber-btn.purple-glow { background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); color: #fff; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); }
+    .cyber-btn.primary-glow { box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3); }
+    .btn-full { width: 100%; }
+    .hidden { display: none !important; }
+    .text-green { color: var(--green-neon); }
+    .text-cyan { color: var(--cyan-neon); }
+    .text-center { text-align: center; }
+    .live-dot.pulse {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981;
+      box-shadow: 0 0 10px #10b981; animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+    .badge-vip { background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(0, 242, 254, 0.2)); color: var(--cyan-neon); border: 1px solid var(--cyan-neon); padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.72rem; }
+    .badge-free { background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); border: 1px solid var(--border-glass); padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.72rem; }
+    .version-quick-btn {
+      padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass-light);
+      background: rgba(255,255,255,0.06); color: #fff; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+    }
+    .version-quick-btn:hover { background: rgba(255,255,255,0.12); border-color: var(--cyan-neon); }
+  </style>
+</head>
+<body class="admin-dark-theme">
+
+  <!-- Background Ambience -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-admin"></div>
+
+  <!-- Admin Login Screen (Shown when not authenticated) -->
+  <div class="admin-login-wrapper" id="adminLoginScreen">
+    <div class="glass-card login-box">
+      <div class="login-header text-center">
+        <div class="admin-logo-badge"><i class="fa-solid fa-user-shield"></i></div>
+        <h2>Smooth Admin Portal</h2>
+        <p>iOS Edition Control Center (Firebase Linked)</p>
+      </div>
+
+      <form id="adminLoginForm">
+        <div class="input-field-group">
+          <label><i class="fa-solid fa-envelope"></i> Admin Username</label>
+          <input type="text" id="adminUserInput" class="glass-input" placeholder="Enter username" autocomplete="off">
+        </div>
+
+        <div class="input-field-group">
+          <label><i class="fa-solid fa-lock"></i> Password</label>
+          <input type="password" id="adminPassInput" class="glass-input" placeholder="••••••••••••" autocomplete="current-password" required>
+        </div>
+
+        <div id="adminLoginError" class="modal-error-msg hidden" style="color: #fca5a5; background: rgba(239, 68, 68, 0.15); padding: 8px; border-radius: 6px; margin-bottom: 12px; font-size: 0.75rem;">
+          <i class="fa-solid fa-circle-exclamation"></i> Invalid username or password!
+        </div>
+
+        <button type="submit" class="cyber-btn primary-glow btn-full">
+          <i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard
+        </button>
+
+        <div class="text-center" style="margin-top: 16px;">
+          <a href="index.html" style="color: var(--cyan-neon); text-decoration: none; font-size: 0.8rem;"><i class="fa-solid fa-arrow-left"></i> Return to Main App</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard Screen (Shown after login) -->
+  <div class="admin-dashboard hidden" id="adminDashboardScreen">
+
+    <!-- Admin Top Nav -->
+    <header class="admin-header">
+      <div class="admin-brand">
+        <div class="admin-pill-logo"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+          <h3>Smooth Master Panel</h3>
+          <span class="admin-status-badge">
+            <span class="live-dot pulse"></span>
+            <span id="headerDbStatusText">Connected to smoothoptimizer-default-rtdb</span>
+          </span>
+        </div>
+      </div>
+      <div class="admin-header-actions" style="display: flex; gap: 10px;">
+        <a href="index.html" class="glass-btn-sm" target="_blank"><i class="fa-solid fa-eye"></i> View Client Site</a>
+        <button id="adminLogoutBtn" class="glass-btn-sm" style="color: #ef4444;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+
+      <!-- Metrics Row -->
+      <section class="admin-stats-grid">
+        <div class="admin-stat-card">
+          <div class="stat-top">
+            <span class="stat-title">Real-Time Online (iOS)</span>
+            <i class="fa-solid fa-signal text-green"></i>
+          </div>
+          <div class="stat-big-val" id="statOnlineUsers">1</div>
+          <div class="stat-sub-text"><span class="text-green">Live Active</span> devices</div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="stat-top">
+            <span class="stat-title">Total VIP Keys</span>
+            <i class="fa-solid fa-key" style="color: var(--purple-neon);"></i>
+          </div>
+          <div class="stat-big-val" id="statTotalKeys">0</div>
+          <div class="stat-sub-text"><span id="statActiveKeysCount">0</span> currently bound</div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="stat-top">
+            <span class="stat-title">Active Devices (HWID)</span>
+            <i class="fa-solid fa-fingerprint" style="color: var(--cyan-neon);"></i>
+          </div>
+          <div class="stat-big-val" id="statActiveDevices">0</div>
+          <div class="stat-sub-text">1 Key = 1 Device Enforcement</div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="stat-top">
+            <span class="stat-title">Current Engine Version</span>
+            <i class="fa-solid fa-code-branch" style="color: var(--amber-neon);"></i>
+          </div>
+          <div class="stat-big-val" id="statCurrentVersion">v1</div>
+          <div class="stat-sub-text" id="statVersionStatusSub">Live Broadcast Active</div>
+        </div>
+      </section>
+
+      <!-- Quick Global Switch Card (Free Users VIP Access) -->
+      <section class="glass-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(16, 185, 129, 0.12)); border: 1px solid rgba(245, 158, 11, 0.35);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 46px; height: 46px; border-radius: 14px; background: rgba(245, 158, 11, 0.2); color: var(--amber-neon); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+              <i class="fa-solid fa-crown"></i>
+            </div>
+            <div>
+              <h3 style="font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                Free Users VIP Master Switch
+                <span id="freeVipStatusBadge" class="status-badge-unused" style="font-size: 0.7rem;">OFF</span>
+              </h3>
+              <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;">
+                මෙම switch එක <strong>ON</strong> කළ විට, License Key එකක් නැති <strong>Free users ලාටත් සියලුම VIP Features (120FPS, Anti-Ad DNS)</strong> නොමිලේම Real-time unlock වේ!
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <label class="ios-switch">
+              <input type="checkbox" id="freeVipMasterSwitch">
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin Tabs Navigation -->
+      <div class="admin-nav-tabs">
+        <button class="adm-tab-btn active" data-tab="tab-version"><i class="fa-solid fa-sliders"></i> Version & Force Update</button>
+        <button class="adm-tab-btn" data-tab="tab-keys"><i class="fa-solid fa-key"></i> License Key Manager</button>
+        <button class="adm-tab-btn" data-tab="tab-users"><i class="fa-solid fa-users"></i> Live Devices & Battery</button>
+        <button class="adm-tab-btn" data-tab="tab-firebase"><i class="fa-solid fa-fire"></i> Firebase Safety & Sync</button>
+      </div>
+
+      <!-- TAB 1: Version Control & Announcement Broadcaster -->
+      <div class="admin-tab-pane active" id="tab-version">
+        <div class="version-controls-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+          
+          <div class="glass-card">
+            <div class="card-head">
+              <h3><i class="fa-solid fa-code-branch" style="color: var(--purple-neon);"></i> Version Update Broadcaster</h3>
+            </div>
+            <p class="card-desc" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">
+              ඔබ මෙතනින් Version එක (උදා: <code>3</code>) වෙනස් කළ සැනින්, සයිට් එකේ ඉන්න සියලුම users ලාට <strong>"නව Version එකක් ලබාගන්න"</strong> කියා popup alert එකක් දිස්වේ.
+            </p>
+
+            <!-- 1-Click Quick Buttons -->
+            <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+              <button type="button" class="version-quick-btn" id="quickSetVersion1Btn" style="border-color: #10b981; color: #10b981;">
+                <i class="fa-solid fa-circle-check"></i> Set Version = 2 (Normal Gameplay)
+              </button>
+              <button type="button" class="version-quick-btn" id="quickSetVersion2Btn" style="border-color: #ef4444; color: #ef4444;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Set Version = 3 (Lock with Update Modal)
+              </button>
+            </div>
+
+            <form id="updateVersionForm">
+              <div class="input-field-group">
+                <label>Latest Engine Version / lastv (e.g. 2 or 3)</label>
+                <input type="text" id="targetVersionInput" class="glass-input" value="2" required>
+              </div>
+
+              <div class="input-field-group">
+                <label>Update Link / New Website URL (Optional)</label>
+                <input type="text" id="versionUpdateUrlInput" class="glass-input" placeholder="e.g. https://smooth-v2.vercel.app or Telegram Link">
+              </div>
+
+              <div class="input-field-group">
+                <label>Apple Shortcut iCloud Link (Optional)</label>
+                <input type="text" id="shortcutUrlInput" class="glass-input" placeholder="e.g. https://www.icloud.com/shortcuts/...">
+              </div>
+
+              <div class="input-field-group">
+                <label>Release Notes / Message</label>
+                <textarea id="versionNotesInput" class="glass-textarea" rows="3">Smooth iOS 18 stability and PUBG 120FPS ultra low ping optimization added.</textarea>
+              </div>
+
+              <button type="submit" class="cyber-btn primary-glow btn-full">
+                <i class="fa-solid fa-bullhorn"></i> Push Version to Firebase & Broadcast
+              </button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-head">
+              <h3><i class="fa-solid fa-message text-green"></i> Live Announcement Banner</h3>
+            </div>
+            <p class="card-desc" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">සයිට් එකේ උඩින්ම දිස්වන notice banner එක මෙතනින් සකස් කළ හැක.</p>
+
+            <form id="announcementForm">
+              <div class="input-field-group">
+                <label>Announcement Message</label>
+                <input type="text" id="announcementInput" class="glass-input" placeholder="e.g. VIP Server Maintenance at 10 PM. Ping is now optimized!">
+              </div>
+
+              <div class="checkbox-row" style="display: flex; align-items: center; gap: 8px; margin: 12px 0;">
+                <input type="checkbox" id="announcementActiveCheck" checked>
+                <label for="announcementActiveCheck" style="font-size: 0.8rem;">Show banner on client site</label>
+              </div>
+
+              <button type="submit" class="cyber-btn purple-glow btn-full">
+                <i class="fa-solid fa-paper-plane"></i> Update Banner
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: License Key Manager & Generator -->
+      <div class="admin-tab-pane" id="tab-keys">
+        <div class="glass-card" style="margin-bottom: 20px;">
+          <div class="card-head">
+            <h3><i class="fa-solid fa-plus-circle text-green"></i> Generate New Smooth VIP Key</h3>
+          </div>
+          <form id="generateKeyForm" class="key-gen-grid">
+            <div class="input-field-group">
+              <label>Duration / Plan</label>
+              <select id="keyDurationSelect" class="glass-select" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass-light); color: #fff; border-radius: 6px;">
+                <option value="1_day">1 Day Trial (Rs. 100)</option>
+                <option value="7_days">7 Days Pass (Rs. 350)</option>
+                <option value="30_days" selected>30 Days Pro (Rs. 1,000)</option>
+                <option value="lifetime">Lifetime VIP (Rs. 3,500)</option>
+              </select>
+            </div>
+
+            <div class="input-field-group">
+              <label>Price / Note Tag</label>
+              <input type="text" id="keyPriceInput" class="glass-input" placeholder="e.g. Rs. 1000 - Kasun" value="Rs. 1000">
+            </div>
+
+            <div class="input-field-group">
+              <label>Quantity to Generate</label>
+              <input type="number" id="keyQtyInput" class="glass-input" value="1" min="1" max="20">
+            </div>
+
+            <div class="gen-btn-col">
+              <button type="submit" class="cyber-btn primary-glow btn-full">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate VIP Key(s)
+              </button>
+            </div>
+          </form>
+
+          <div id="latestGenKeysBox" class="latest-keys-box hidden">
+            <h4 style="color: var(--green-neon); margin-bottom: 10px;"><i class="fa-solid fa-check-circle"></i> Newly Generated Key:</h4>
+            <div id="newlyGenKeysList"></div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-head">
+            <h3><i class="fa-solid fa-list-check" style="color: var(--cyan-neon);"></i> Active License Keys & HWID Binding</h3>
+            <div class="table-actions" style="display: flex; gap: 8px;">
+              <input type="text" id="searchKeysInput" class="glass-input" placeholder="Search key, HWID, notes..." style="padding: 6px 12px; width: 220px;">
+              <button id="refreshKeysBtn" class="glass-btn-sm" title="Refresh Table"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table" id="keysTable">
+              <thead>
+                <tr>
+                  <th>LICENSE KEY</th>
+                  <th>PLAN / DURATION</th>
+                  <th>PRICE / NOTE</th>
+                  <th>DEVICE HWID (1-DEVICE LOCK)</th>
+                  <th>STATUS</th>
+                  <th>CREATED</th>
+                  <th>ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody id="keysTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: Live Online Users & Devices -->
+      <div class="admin-tab-pane" id="tab-users">
+        <div class="glass-card">
+          <div class="card-head">
+            <h3><i class="fa-solid fa-mobile-screen-button" style="color: var(--amber-neon);"></i> Live Connected iOS Devices</h3>
+            <span class="badge-sub" style="font-size: 0.72rem; color: var(--green-neon);"><i class="fa-solid fa-circle-notch fa-spin"></i> Auto-Refreshes every 2s</span>
+          </div>
+          <p class="card-desc" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">සයිට් එකේ මේ මොහොතේ ඉන්න අයගේ Device Model, සැබෑ Battery අගය (%), සහ Latency එක live මෙහි පෙන්වයි.</p>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>STATUS</th>
+                  <th>DEVICE MODEL</th>
+                  <th>BATTERY (%)</th>
+                  <th>HWID LOCK</th>
+                  <th>TIER</th>
+                  <th>LATENCY</th>
+                  <th>LAST SEEN</th>
+                </tr>
+              </thead>
+              <tbody id="onlineUsersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: Firebase Safety & Config -->
+      <div class="admin-tab-pane" id="tab-firebase">
+        <div class="glass-card">
+          <div class="card-head">
+            <h3><i class="fa-solid fa-shield-halved text-green"></i> Firebase Realtime Database Status</h3>
+            <span class="badge-sub text-green">Active & Protected</span>
+          </div>
+          <div class="free-info" style="font-size: 0.85rem; line-height: 1.8;">
+            <p><i class="fa-solid fa-circle-check text-green"></i> <strong>Target Cloud RTDB:</strong> <code>https://smoothoptimizer-default-rtdb.firebaseio.com</code></p>
+            <p><i class="fa-solid fa-lock" style="color: var(--cyan-neon);"></i> <strong>Data Isolation Path:</strong> <code>/ios_optimizer/</code></p>
+            <p><i class="fa-solid fa-bolt" style="color: var(--amber-neon);"></i> <strong>Root Version Nodes:</strong> <code>latest_version</code> & <code>v</code></p>
+            <div class="ios-install-steps" style="margin-top: 14px; background: rgba(0,0,0,0.3); padding: 14px; border-radius: 8px; font-size: 0.8rem;">
+              <h4 style="color: #cbd5e1; margin-bottom: 8px;"><i class="fa-solid fa-shield-virus"></i> Safety Guarantee for Smooth APK:</h4>
+              <p style="color: var(--text-secondary); line-height: 1.6;">
+                ඔබේ Android Smooth APK එකේ කිසිම data එකක් overwrite හෝ delete නොවීමට, මෙම iOS Web App එකේ සියලුම data 
+                (License keys, Live online devices, Version settings) වෙනමම <code>/ios_optimizer/</code> කියන child node එක තුළ පමණක් save වේ.
+                එමගින් ඔබගේ පවතින Smooth APK එකට <strong>100% ක පූර්ණ ආරක්ෂාවක්</strong> ලැබේ.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Embedded Self-Contained Engine & Controller (Zero External JS Dependencies) -->
+  <script>
+    const FIREBASE_DEFAULT_CONFIG = {
+      apiKey: "AIzaSyDummyKeyForSmoothRtdb1234567890",
+      databaseURL: "https://smoothoptimizer-default-rtdb.firebaseio.com",
+      projectId: "smoothoptimizer"
+    };
+
+    const IOS_ROOT_PATH = "ios_optimizer";
+
+    const STORAGE_KEYS = {
+      FIREBASE_CONFIG: 'smooth_ios_fb_config',
+      ADMIN_AUTH: 'smooth_ios_admin_auth',
+      APP_SETTINGS: 'smooth_ios_app_settings',
+      LICENSE_KEYS: 'smooth_ios_license_keys',
+      ONLINE_DEVICES: 'smooth_ios_online_devices'
+    };
+
+    const INITIAL_STARTER_KEYS = [
+      { key: 'SMOOTH-VIP-2026-X1', plan: 'lifetime', price: 'Rs. 3500', hwid: null, created_at: new Date().toISOString(), status: 'active' },
+      { key: 'SMOOTH-VIP-30D-K89', plan: '30_days', price: 'Rs. 1000', hwid: null, created_at: new Date().toISOString(), status: 'active' }
+    ];
+
+    const DEFAULT_APP_SETTINGS = {
+      latest_version: '2',
+      lastv: '2',
+      v: '2',
+      current_version: '2',
+      version_notes: 'Smooth iOS 18 performance and PUBG 120FPS optimization added.',
+      update_url: '',
+      free_vip_enabled: false,
+      announcement: {
+        active: false,
+        message: 'Welcome to Smooth iOS Optimizer!'
+      }
+    };
+
+    class SmoothAdminEngine {
+      constructor() {
+        this.initStorage();
+        this.startDirectRestSync();
+      }
+
+      initStorage() {
+        if (!localStorage.getItem(STORAGE_KEYS.APP_SETTINGS)) {
+          localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(DEFAULT_APP_SETTINGS));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.LICENSE_KEYS)) {
+          localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(INITIAL_STARTER_KEYS));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.ONLINE_DEVICES)) {
+          localStorage.setItem(STORAGE_KEYS.ONLINE_DEVICES, JSON.stringify({}));
+        }
+      }
+
+      startDirectRestSync() {
+        const baseUrl = FIREBASE_DEFAULT_CONFIG.databaseURL;
+
+        // JSONP script injection for cross-origin or local testing
+        const injectJsonp = (endpoint, cbName) => {
+          const id = `jsonp_${endpoint.replace(/[^a-zA-Z0-9]/g, '_')}`;
+          const existing = document.getElementById(id);
+          if (existing) existing.remove();
+          const s = document.createElement('script');
+          s.id = id;
+          s.src = `${baseUrl}/${endpoint}.json?callback=${cbName}&_=${Date.now()}`;
+          s.onerror = () => s.remove();
+          s.onload = () => s.remove();
+          document.head.appendChild(s);
+        };
+
+        // JSONP Global Callbacks
+        window.__smoothAdminKeysCb = (data) => {
+          if (data) {
+            const list = Array.isArray(data) ? data.filter(Boolean) : Object.values(data).filter(Boolean);
+            if (list.length > 0) {
+              localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(list));
+              this.triggerSync();
+            }
+          }
+        };
+
+        window.__smoothAdminDevicesCb = (data) => {
+          if (data && typeof data === 'object') {
+            localStorage.setItem(STORAGE_KEYS.ONLINE_DEVICES, JSON.stringify(data));
+            this.triggerSync();
+          }
+        };
+
+        window.__smoothAdminSettingsCb = (data) => {
+          if (data && typeof data === 'object') {
+            const cur = this.getSettings();
+            const merged = { ...cur, ...data };
+            localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(merged));
+            this.triggerSync();
+          }
+        };
+
+        window.__smoothAdminVersionCb = (data) => {
+          if (data !== null && data !== undefined) {
+            this.handleRemoteVersion(data);
+          }
+        };
+
+        const runSync = () => {
+          // 1. Fetch Keys from Firebase RTDB
+          fetch(`${baseUrl}/${IOS_ROOT_PATH}/keys.json?_=${Date.now()}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+              if (data) {
+                const list = Array.isArray(data) ? data.filter(Boolean) : Object.values(data).filter(Boolean);
+                if (list.length > 0) {
+                  localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(list));
+                  this.triggerSync();
+                }
+              }
+            })
+            .catch(() => {
+              injectJsonp(`${IOS_ROOT_PATH}/keys`, '__smoothAdminKeysCb');
+            });
+
+          // 2. Fetch Live Online Devices from Firebase RTDB
+          fetch(`${baseUrl}/${IOS_ROOT_PATH}/online_devices.json?_=${Date.now()}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+              if (data && typeof data === 'object') {
+                localStorage.setItem(STORAGE_KEYS.ONLINE_DEVICES, JSON.stringify(data));
+                this.triggerSync();
+              }
+            })
+            .catch(() => {
+              injectJsonp(`${IOS_ROOT_PATH}/online_devices`, '__smoothAdminDevicesCb');
+            });
+
+          // 3. Fetch Settings (Announcement & Free VIP only)
+          fetch(`${baseUrl}/${IOS_ROOT_PATH}/settings.json?_=${Date.now()}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+              if (data && typeof data === 'object') {
+                const cur = this.getSettings();
+                if (data.announcement) cur.announcement = data.announcement;
+                if (data.free_vip_enabled !== undefined) cur.free_vip_enabled = data.free_vip_enabled;
+                if (data.version_notes) cur.version_notes = data.version_notes;
+                if (data.update_url !== undefined) cur.update_url = data.update_url;
+                if (data.shortcut_url !== undefined) cur.shortcut_url = data.shortcut_url;
+                localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(cur));
+                this.triggerSync();
+              }
+            })
+            .catch(() => {
+              injectJsonp(`${IOS_ROOT_PATH}/settings`, '__smoothAdminSettingsCb');
+            });
+
+          // 4. Fetch Root Version from Firebase RTDB
+          fetch(`${baseUrl}/latest_version.json?_=${Date.now()}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+              if (data !== null && data !== undefined) {
+                this.handleRemoteVersion(data);
+              } else {
+                return fetch(`${baseUrl}/v.json?_=${Date.now()}`).then(r => r.ok ? r.json() : null);
+              }
+            })
+            .then(data => {
+              if (data !== null && data !== undefined) {
+                this.handleRemoteVersion(data);
+              }
+            })
+            .catch(() => {
+              injectJsonp('latest_version', '__smoothAdminVersionCb');
+            });
+        };
+
+        runSync();
+        setInterval(runSync, 2500);
+      }
+
+      triggerSync() {
+        window.dispatchEvent(new CustomEvent('smooth_db_sync'));
+      }
+
+      handleRemoteVersion(remoteVal) {
+        if (remoteVal === null || remoteVal === undefined) return;
+        const vStr = String(remoteVal).trim();
+        const current = this.getSettings();
+        current.latest_version = vStr;
+        current.v = vStr;
+        current.lastv = vStr;
+        localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(current));
+        window.dispatchEvent(new CustomEvent('smooth_db_sync', { detail: current }));
+      }
+
+      getSettings() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEYS.APP_SETTINGS)) || DEFAULT_APP_SETTINGS;
+        } catch (e) {
+          return DEFAULT_APP_SETTINGS;
+        }
+      }
+
+      async updateSettings(newSettings) {
+        const current = this.getSettings();
+        const updated = { ...current, ...newSettings };
+
+        const baseUrl = FIREBASE_DEFAULT_CONFIG.databaseURL;
+        const vVal = updated.latest_version || updated.v || updated.lastv;
+        if (vVal !== undefined) {
+          const vStr = String(vVal).trim();
+          updated.latest_version = vStr;
+          updated.v = vStr;
+          updated.lastv = vStr;
+          const numVal = Number(vStr) || vStr;
+
+          try {
+            fetch(`${baseUrl}/latest_version.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(numVal)
+            }).catch(() => {});
+            fetch(`${baseUrl}/v.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(numVal)
+            }).catch(() => {});
+            fetch(`${baseUrl}/lastv.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(numVal)
+            }).catch(() => {});
+          } catch (e) {}
+        }
+
+        localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(updated));
+
+        try {
+          fetch(`${baseUrl}/${IOS_ROOT_PATH}/settings.json`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updated)
+          }).catch(() => {});
+        } catch (e) {}
+
+        this.triggerSync();
+        return updated;
+      }
+
+      getKeys() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEYS.LICENSE_KEYS)) || [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      async generateKey(plan = '30_days', price = 'Rs. 1000') {
+        const keys = this.getKeys();
+        const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const randomChar = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        const prefix = 'SMOOTH-VIP';
+        const newKeyCode = `${prefix}-${randomHex}-${randomChar}`;
+
+        const newKeyObj = {
+          key: newKeyCode,
+          plan: plan,
+          price: price,
+          hwid: null,
+          created_at: new Date().toISOString(),
+          status: 'active'
+        };
+
+        keys.unshift(newKeyObj);
+        localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(keys));
+
+        // Sync keys to Firebase
+        try {
+          fetch(`${FIREBASE_DEFAULT_CONFIG.databaseURL}/${IOS_ROOT_PATH}/keys.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(keys)
+          }).catch(() => {});
+        } catch (e) {}
+
+        this.triggerSync();
+        return newKeyObj;
+      }
+
+      resetKeyHwid(keyString) {
+        const keys = this.getKeys();
+        const keyItem = keys.find(k => k.key === keyString);
+        if (keyItem) {
+          keyItem.hwid = null;
+          keyItem.status = 'active';
+          localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(keys));
+          try {
+            fetch(`${FIREBASE_DEFAULT_CONFIG.databaseURL}/${IOS_ROOT_PATH}/keys.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(keys)
+            }).catch(() => {});
+          } catch (e) {}
+          this.triggerSync();
+        }
+      }
+
+      deleteKey(keyString) {
+        let keys = this.getKeys();
+        keys = keys.filter(k => k.key !== keyString);
+        localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(keys));
+        try {
+          fetch(`${FIREBASE_DEFAULT_CONFIG.databaseURL}/${IOS_ROOT_PATH}/keys.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(keys)
+          }).catch(() => {});
+        } catch (e) {}
+        this.triggerSync();
+      }
+
+      getActiveDevices() {
+        try {
+          const devicesMap = JSON.parse(localStorage.getItem(STORAGE_KEYS.ONLINE_DEVICES)) || {};
+          const now = Date.now();
+          const active = [];
+          for (const hwid in devicesMap) {
+            const dev = devicesMap[hwid];
+            if (!dev) continue;
+            if (dev.last_seen && (now - dev.last_seen < 90000)) {
+              active.push(dev);
+            }
+          }
+          return active;
+        } catch (e) {
+          return [];
+        }
+      }
+    }
+
+    // Initialize Engine globally
+    window.AuraDB = new SmoothAdminEngine();
+    window.SmoothDB = window.AuraDB;
+
+    // ==================== ADMIN UI CONTROLLER ====================
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdminAuth();
+      initAdminDashboard();
+    });
+
+    function initAdminAuth() {
+      const loginForm = document.getElementById('adminLoginForm');
+      const loginScreen = document.getElementById('adminLoginScreen');
+      const dashboardScreen = document.getElementById('adminDashboardScreen');
+      const errorMsg = document.getElementById('adminLoginError');
+      const logoutBtn = document.getElementById('adminLogoutBtn');
+
+      const isLoggedIn = sessionStorage.getItem('smooth_admin_logged_in') === 'true';
+      if (isLoggedIn) {
+        showDashboard();
+      }
+
+      if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const user = document.getElementById('adminUserInput').value.trim();
+          const pass = document.getElementById('adminPassInput').value.trim();
+
+          if (pass === '0776172952') {
+            sessionStorage.setItem('smooth_admin_logged_in', 'true');
+            if (errorMsg) errorMsg.classList.add('hidden');
+            showDashboard();
+          } else {
+            if (errorMsg) errorMsg.classList.remove('hidden');
+          }
+        });
+      }
+
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          sessionStorage.removeItem('smooth_admin_logged_in');
+          window.location.reload();
+        });
+      }
+
+      function showDashboard() {
+        if (loginScreen) loginScreen.classList.add('hidden');
+        if (dashboardScreen) dashboardScreen.classList.remove('hidden');
+        loadDashboardData();
+      }
+    }
+
+    function initAdminDashboard() {
+      initTabs();
+      initFreeVipSwitch();
+      initKeyGenerator();
+      initVersionBroadcaster();
+      initAnnouncementForm();
+
+      const searchInput = document.getElementById('searchKeysInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          renderKeysTable(searchInput.value);
+        });
+      }
+
+      const refreshKeysBtn = document.getElementById('refreshKeysBtn');
+      if (refreshKeysBtn) {
+        refreshKeysBtn.addEventListener('click', () => {
+          renderKeysTable();
+        });
+      }
+
+      // Quick 1-click version switch buttons
+      const btnV1 = document.getElementById('quickSetVersion1Btn');
+      if (btnV1) {
+        btnV1.addEventListener('click', async () => {
+          document.getElementById('targetVersionInput').value = '2';
+          await window.AuraDB.updateSettings({ latest_version: '2', v: '2', lastv: '2' });
+          alert('✅ Successfully set Version = 2 in Firebase! The app is now Unlocked and in normal gameplay mode.');
+          updateMetrics();
+        });
+      }
+
+      const btnV2 = document.getElementById('quickSetVersion2Btn');
+      if (btnV2) {
+        btnV2.addEventListener('click', async () => {
+          document.getElementById('targetVersionInput').value = '3';
+          await window.AuraDB.updateSettings({ latest_version: '3', v: '3', lastv: '3' });
+          alert('🚨 Successfully set Version = 3 in Firebase! All connected client devices will now see the Force Update modal in real time.');
+          updateMetrics();
+        });
+      }
+
+      setInterval(() => {
+        renderOnlineUsers();
+        updateMetrics();
+      }, 3000);
+
+      window.addEventListener('smooth_db_sync', () => {
+        renderOnlineUsers();
+        renderKeysTable();
+        updateMetrics();
+        loadFreeVipSwitchState();
+        loadVersionSettings();
+      });
+    }
+
+    function loadDashboardData() {
+      updateMetrics();
+      loadFreeVipSwitchState();
+      renderKeysTable();
+      renderOnlineUsers();
+      loadVersionSettings();
+    }
+
+    function initFreeVipSwitch() {
+      const toggle = document.getElementById('freeVipMasterSwitch');
+      if (!toggle) return;
+
+      toggle.addEventListener('change', async (e) => {
+        const isEnabled = e.target.checked;
+        await window.AuraDB.updateSettings({ free_vip_enabled: isEnabled });
+        updateFreeVipBadge(isEnabled);
+
+        if (isEnabled) {
+          alert('🎉 Free-for-All VIP Mode is now ON! All Free users now have 100% full VIP access in Real-Time!');
+        } else {
+          alert('🔒 Free-for-All VIP Mode is now OFF! Free users are restricted to standard features.');
+        }
+      });
+    }
+
+    function loadFreeVipSwitchState() {
+      const settings = window.AuraDB.getSettings();
+      const toggle = document.getElementById('freeVipMasterSwitch');
+      const isEnabled = !!settings.free_vip_enabled;
+      if (toggle) toggle.checked = isEnabled;
+      updateFreeVipBadge(isEnabled);
+    }
+
+    function updateFreeVipBadge(isEnabled) {
+      const badge = document.getElementById('freeVipStatusBadge');
+      if (badge) {
+        if (isEnabled) {
+          badge.textContent = 'ON (ACTIVE FOR ALL)';
+          badge.className = 'status-badge-active';
+        } else {
+          badge.textContent = 'OFF (VIP KEYS REQUIRED)';
+          badge.className = 'status-badge-unused';
+        }
+      }
+    }
+
+    function initTabs() {
+      const tabs = document.querySelectorAll('.adm-tab-btn');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          const targetPane = tab.getAttribute('data-tab');
+          document.querySelectorAll('.admin-tab-pane').forEach(p => p.classList.remove('active'));
+          const activePane = document.getElementById(targetPane);
+          if (activePane) activePane.classList.add('active');
+        });
+      });
+    }
+
+    function updateMetrics() {
+      const keys = window.AuraDB.getKeys();
+      const onlineDevices = window.AuraDB.getActiveDevices();
+      const settings = window.AuraDB.getSettings();
+
+      const boundKeys = keys.filter(k => k.hwid !== null && k.hwid !== undefined).length;
+      const curV = settings.lastv || settings.latest_version || settings.v || '2';
+
+      const elOnline = document.getElementById('statOnlineUsers');
+      if (elOnline) elOnline.textContent = onlineDevices.length;
+
+      const elKeys = document.getElementById('statTotalKeys');
+      if (elKeys) elKeys.textContent = keys.length;
+
+      const elActiveK = document.getElementById('statActiveKeysCount');
+      if (elActiveK) elActiveK.textContent = boundKeys;
+
+      const elActiveD = document.getElementById('statActiveDevices');
+      if (elActiveD) elActiveD.textContent = boundKeys;
+
+      const elCurV = document.getElementById('statCurrentVersion');
+      if (elCurV) elCurV.textContent = `v${curV}`;
+
+      const elSub = document.getElementById('statVersionStatusSub');
+      if (elSub) {
+        if (parseFloat(curV) >= 3) {
+          elSub.innerHTML = '<span style="color:#ef4444; font-weight:700;"><i class="fa-solid fa-bell"></i> Update Lock Active</span>';
+        } else {
+          elSub.innerHTML = '<span style="color:#10b981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Normal Gaming Mode</span>';
+        }
+      }
+    }
+
+    function initKeyGenerator() {
+      const form = document.getElementById('generateKeyForm');
+      if (!form) return;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const plan = document.getElementById('keyDurationSelect').value;
+        const price = document.getElementById('keyPriceInput').value.trim() || 'Rs. 1000';
+        const qty = parseInt(document.getElementById('keyQtyInput').value) || 1;
+
+        const generated = [];
+        for (let i = 0; i < qty; i++) {
+          const keyObj = await window.AuraDB.generateKey(plan, price);
+          generated.push(keyObj);
+        }
+
+        const latestBox = document.getElementById('latestGenKeysBox');
+        const listEl = document.getElementById('newlyGenKeysList');
+        if (latestBox && listEl) {
+          listEl.innerHTML = generated.map(k => `
+            <div class="new-key-chip">
+              <code>${k.key}</code>
+              <span>(${formatPlanName(k.plan)})</span>
+              <button type="button" class="copy-key-btn" onclick="navigator.clipboard.writeText('${k.key}'); alert('Key copied: ${k.key}');" title="Copy Key">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+            </div>
+          `).join('');
+          latestBox.classList.remove('hidden');
+        }
+
+        renderKeysTable();
+        updateMetrics();
+      });
+    }
+
+    function renderKeysTable(filterText = '') {
+      const tbody = document.getElementById('keysTableBody');
+      if (!tbody) return;
+
+      let keys = window.AuraDB.getKeys();
+      if (filterText) {
+        const q = filterText.toLowerCase();
+        keys = keys.filter(k => 
+          (k.key && k.key.toLowerCase().includes(q)) || 
+          (k.hwid && k.hwid.toLowerCase().includes(q)) || 
+          (k.price && k.price.toLowerCase().includes(q)) ||
+          (k.plan && k.plan.toLowerCase().includes(q))
+        );
+      }
+
+      if (keys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 24px;">No License Keys Found!</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = keys.map(k => {
+        const isBound = k.hwid !== null && k.hwid !== undefined && k.hwid !== '';
+        const isExpired = k.expires_at && new Date(k.expires_at).getTime() <= Date.now();
+        const hwidDisplay = isBound 
+          ? `<span class="hwid-tag"><i class="fa-solid fa-lock text-green"></i> ${k.hwid}</span>` 
+          : `<span class="text-muted"><i class="fa-solid fa-unlock"></i> Unbound</span>`;
+
+        let statusBadge = `<span class="status-badge-unused">UNUSED</span>`;
+        if (isExpired || k.status === 'expired') {
+          statusBadge = `<span class="status-badge-unused" style="background:rgba(239,68,68,0.18); color:#ef4444; border-color:rgba(239,68,68,0.4);">EXPIRED</span>`;
+        } else if (isBound) {
+          statusBadge = `<span class="status-badge-active">ACTIVE (1-DEVICE)</span>`;
+        }
+
+        let dateDisplay = k.created_at ? new Date(k.created_at).toLocaleDateString() : 'N/A';
+        if (k.expires_at) {
+          const diffDays = Math.ceil((new Date(k.expires_at).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+          const expDate = new Date(k.expires_at).toLocaleDateString();
+          dateDisplay = isExpired
+            ? `<span style="color:#ef4444;">Expired ${expDate}</span>`
+            : `<span style="color:#10b981;">${diffDays}d left (${expDate})</span>`;
+        } else if (isBound && k.plan === 'lifetime') {
+          dateDisplay = `<span style="color:#00f2fe;">Lifetime</span>`;
+        }
+
+        return `
+          <tr>
+            <td>
+              <span class="key-code">${k.key}</span>
+              <button class="copy-key-btn" style="margin-left: 6px;" onclick="navigator.clipboard.writeText('${k.key}'); alert('Copied: ${k.key}');">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+            </td>
+            <td><strong>${formatPlanName(k.plan)}</strong></td>
+            <td>${k.price || 'Rs. 1000'}</td>
+            <td>${hwidDisplay}</td>
+            <td>${statusBadge}</td>
+            <td>${dateDisplay}</td>
+            <td>
+              ${isBound ? `
+                <button class="tbl-action-btn" onclick="handleResetHwid('${k.key}')" title="Reset HWID Lock">
+                  <i class="fa-solid fa-arrows-rotate"></i> Reset HWID
+                </button>
+              ` : ''}
+              <button class="tbl-action-btn del" onclick="handleDeleteKey('${k.key}')" title="Delete Key">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function formatPlanName(plan) {
+      if (plan === '1_day') return '1 Day Trial';
+      if (plan === '7_days') return '7 Days Pass';
+      if (plan === '30_days') return '30 Days Pro';
+      if (plan === 'lifetime') return 'Lifetime VIP';
+      return plan || 'VIP Pass';
+    }
+
+    window.handleResetHwid = function(keyString) {
+      if (confirm(`Do you want to reset HWID lock for ${keyString}? The user will be able to bind it to a new device.`)) {
+        window.AuraDB.resetKeyHwid(keyString);
+        renderKeysTable();
+        updateMetrics();
+      }
+    };
+
+    window.handleDeleteKey = function(keyString) {
+      if (confirm(`Are you sure you want to delete ${keyString}?`)) {
+        window.AuraDB.deleteKey(keyString);
+        renderKeysTable();
+        updateMetrics();
+      }
+    };
+
+    function renderOnlineUsers() {
+      const tbody = document.getElementById('onlineUsersTableBody');
+      if (!tbody) return;
+
+      const devices = window.AuraDB.getActiveDevices();
+      if (devices.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 24px; color: var(--text-muted);"><i class="fa-solid fa-tower-broadcast"></i> No active devices detected currently. Live connected devices will appear here in real time.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = devices.map(d => {
+        const isVip = d.tier === 'vip';
+        const lastSeenSec = Math.max(0, Math.round((Date.now() - (d.last_seen || Date.now())) / 1000));
+        return `
+          <tr>
+            <td><span class="live-dot pulse" style="display:inline-block; margin-right: 6px;"></span> <span class="text-green">ONLINE</span></td>
+            <td><i class="fa-brands fa-apple"></i> <strong>${d.device_model || 'iPhone'}</strong></td>
+            <td>
+              <i class="fa-solid ${d.is_charging ? 'fa-battery-charging text-green' : 'fa-battery-full text-cyan'}"></i> 
+              <strong>${d.battery_percent !== null && d.battery_percent !== undefined ? d.battery_percent + '%' : 'iOS Private'}</strong> ${d.is_charging ? '(Charging)' : ''}
+            </td>
+            <td><span class="hwid-tag">${d.hwid || 'HWID-LOCK'}</span></td>
+            <td><span class="${isVip ? 'badge-vip' : 'badge-free'}">${isVip ? 'VIP' : 'FREE'}</span></td>
+            <td><span class="text-green">${d.ping || 24} ms</span></td>
+            <td>${lastSeenSec}s ago</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function loadVersionSettings() {
+      const settings = window.AuraDB.getSettings();
+      const vInput = document.getElementById('targetVersionInput');
+      const vNotes = document.getElementById('versionNotesInput');
+      const aInput = document.getElementById('announcementInput');
+      const aCheck = document.getElementById('announcementActiveCheck');
+
+      if (vInput && document.activeElement !== vInput) vInput.value = settings.lastv || settings.latest_version || settings.v || '1';
+      if (vNotes && document.activeElement !== vNotes) vNotes.value = settings.version_notes || '';
+      const vUrl = document.getElementById('versionUpdateUrlInput');
+      if (vUrl && document.activeElement !== vUrl) vUrl.value = settings.update_url || '';
+      const sUrl = document.getElementById('shortcutUrlInput');
+      if (sUrl && document.activeElement !== sUrl) sUrl.value = settings.shortcut_url || '';
+      if (aInput && document.activeElement !== aInput && settings.announcement) aInput.value = settings.announcement.message || '';
+      if (aCheck && settings.announcement) aCheck.checked = settings.announcement.active;
+    }
+
+    function initVersionBroadcaster() {
+      const form = document.getElementById('updateVersionForm');
+      if (!form) return;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const targetVersion = document.getElementById('targetVersionInput').value.trim();
+        const versionNotes = document.getElementById('versionNotesInput').value.trim();
+        const updateUrl = document.getElementById('versionUpdateUrlInput')?.value.trim() || '';
+        const shortcutUrl = document.getElementById('shortcutUrlInput')?.value.trim() || '';
+
+        await window.AuraDB.updateSettings({
+          latest_version: targetVersion,
+          v: targetVersion,
+          lastv: targetVersion,
+          version_notes: versionNotes,
+          update_url: updateUrl,
+          shortcut_url: shortcutUrl
+        });
+
+        alert(`🚀 Version update published (${targetVersion}) to Firebase! All client sessions will immediately update.`);
+        updateMetrics();
+      });
+    }
+
+    function initAnnouncementForm() {
+      const form = document.getElementById('announcementForm');
+      if (!form) return;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById('announcementInput').value.trim();
+        const active = document.getElementById('announcementActiveCheck').checked;
+
+        await window.AuraDB.updateSettings({
+          announcement: {
+            active: active,
+            message: msg
+          }
+        });
+
+        alert('📢 Live Announcement banner updated across all client pages!');
+      });
+    }
+  </script>
+</body>
+</html>

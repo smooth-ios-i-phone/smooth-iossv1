@@ -1,0 +1,2807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#070a11">
+  <title>Smooth iOS Optimizer | Next-Gen Performance</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Pre-render Force Update Hard-Lock (Zero Millisecond Interaction Gap) -->
+  <script>
+    (function() {
+      try {
+        var s = JSON.parse(localStorage.getItem('smooth_ios_app_settings')) || {};
+        var v = s.latest_version || s.v || s.lastv || '';
+        var vNum = parseFloat(String(v).replace(/[^0-9.]/g, ''));
+        // ONLY lock if version is STRICTLY 3 or greater (Current App = Version 2)!
+        if (!isNaN(vNum) && vNum >= 3) {
+          document.documentElement.classList.add('app-force-locked');
+        } else {
+          document.documentElement.classList.remove('app-force-locked');
+          localStorage.removeItem('smooth_force_locked');
+        }
+      } catch(e) {}
+    })();
+  </script>
+
+  <!-- BUILT-IN SELF-CONTAINED STYLES -->
+  <style>
+    :root {
+      --bg-primary: #070a11;
+      --bg-secondary: #0c1220;
+      --bg-card: rgba(16, 24, 40, 0.75);
+      --bg-card-hover: rgba(22, 33, 56, 0.85);
+      --border-glass: rgba(255, 255, 255, 0.1);
+      --border-glass-light: rgba(255, 255, 255, 0.18);
+      --border-neon: rgba(0, 242, 254, 0.35);
+      --apple-blue: #007aff;
+      --cyan-neon: #00f2fe;
+      --purple-neon: #9d4edd;
+      --green-neon: #10b981;
+      --amber-neon: #f59e0b;
+      --red-neon: #ef4444;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", Menlo, Consolas, monospace;
+      --blur-amt: 24px;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body.ios-dark-theme {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      line-height: 1.5;
+      padding-bottom: 40px;
+    }
+
+    .ambient-glow { position: fixed; border-radius: 50%; filter: blur(100px); z-index: -2; pointer-events: none; opacity: 0.4; }
+    .glow-1 { width: 320px; height: 320px; top: -50px; right: -50px; background: radial-gradient(circle, #00f2fe, #4facfe); }
+    .glow-2 { width: 360px; height: 360px; bottom: 10%; left: -80px; background: radial-gradient(circle, #7928ca, #ff0080); }
+    .glow-3 { width: 250px; height: 250px; top: 40%; right: -60px; background: radial-gradient(circle, #0575e6, #00f260); }
+
+    .grid-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 32px 32px; z-index: -1; pointer-events: none;
+    }
+
+    .dynamic-bar-wrapper { position: sticky; top: 12px; z-index: 100; display: flex; justify-content: center; padding: 0 16px; }
+    .dynamic-island {
+      background: rgba(10, 14, 24, 0.92); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 32px; padding: 6px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 242, 254, 0.2); max-width: 420px; width: 100%;
+    }
+    .island-pill { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--green-neon); box-shadow: 0 0 8px var(--green-neon); }
+    .pulse { animation: pulse-ring 2s infinite; }
+    @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
+    .island-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-family: var(--font-mono); }
+    .status-sep { color: var(--text-muted); }
+    .badge-free { background: rgba(255, 255, 255, 0.12); color: #cbd5e1; padding: 2px 8px; border-radius: 12px; font-weight: 700; font-size: 0.65rem; }
+    .badge-vip { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; padding: 2px 8px; border-radius: 12px; font-weight: 800; font-size: 0.65rem; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+
+    .app-viewport { max-width: 500px; margin: 0 auto; padding: 16px 18px; transition: filter 0.3s ease; }
+    .app-nav { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 20px; }
+    .logo-box { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #070a11; box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    }
+    .brand-name { font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px; }
+    .brand-name span { color: var(--cyan-neon); }
+    .brand-sub { font-size: 0.72rem; color: var(--text-secondary); font-weight: 500; }
+    .glass-icon-btn {
+      background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-glass-light);
+      color: var(--text-secondary); width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;
+    }
+    .glass-icon-btn:hover { background: rgba(255, 255, 255, 0.15); color: var(--cyan-neon); transform: scale(1.05); }
+
+    .announcement-banner {
+      background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(0, 242, 254, 0.15));
+      border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-sm);
+      padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #d1fae5;
+    }
+    .banner-icon { color: var(--green-neon); font-size: 1rem; }
+    .banner-text { flex: 1; }
+    .banner-close { background: none; border: none; color: var(--text-muted); cursor: pointer; }
+
+    .glass-card {
+      background: var(--bg-card); backdrop-filter: blur(var(--blur-amt)); -webkit-backdrop-filter: blur(var(--blur-amt));
+      border: 1px solid var(--border-glass); border-radius: var(--radius-lg); padding: 20px;
+      margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); position: relative; overflow: hidden;
+    }
+    .glass-card::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    }
+    .hud-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .hud-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .hud-tag {
+      background: rgba(16, 185, 129, 0.15); color: var(--green-neon); border: 1px solid rgba(16, 185, 129, 0.3);
+      font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 8px; font-family: var(--font-mono);
+    }
+
+    .hud-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .hud-stat-box {
+      background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; gap: 12px;
+    }
+    .stat-icon-wrap {
+      width: 38px; height: 38px; border-radius: 12px; background: rgba(0, 242, 254, 0.12);
+      color: var(--cyan-neon); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .stat-icon-wrap.phone-icon { background: rgba(157, 78, 221, 0.15); color: var(--purple-neon); }
+    .stat-icon-wrap.ping-icon { background: rgba(16, 185, 129, 0.15); color: var(--green-neon); }
+    .stat-icon-wrap.hwid-icon { background: rgba(245, 158, 11, 0.15); color: var(--amber-neon); }
+    .stat-content { overflow: hidden; }
+    .stat-val { font-size: 0.95rem; font-weight: 700; font-family: var(--font-mono); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat-val.hwid-val { font-size: 0.75rem; }
+    .stat-lbl { font-size: 0.68rem; color: var(--text-muted); }
+
+    .device-switcher-row {
+      margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.75rem; color: var(--text-secondary);
+    }
+    .glass-select {
+      background: rgba(10, 15, 26, 0.85); border: 1px solid var(--border-glass-light);
+      color: var(--text-primary); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.75rem; outline: none; cursor: pointer;
+    }
+
+    .tier-pill-box { background: rgba(0, 0, 0, 0.4); padding: 4px; border-radius: 14px; display: flex; gap: 4px; width: 100%; }
+    .tier-tab-btn {
+      flex: 1; background: none; border: none; color: var(--text-muted); padding: 8px 12px;
+      border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .tier-tab-btn.active { background: rgba(255, 255, 255, 0.15); color: var(--text-primary); }
+    .free-info { margin-top: 14px; font-size: 0.8rem; color: var(--text-secondary); }
+    .vip-promo { margin: 10px 0 14px; color: #cbd5e1; font-size: 0.8rem; }
+
+    .tool-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 16px; scrollbar-width: none; }
+    .tool-tab {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); color: var(--text-muted);
+      padding: 10px 14px; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 600; white-space: nowrap;
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+    }
+    .tool-tab.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(79, 172, 254, 0.2));
+      border-color: var(--cyan-neon); color: var(--text-primary); box-shadow: 0 0 15px rgba(0, 242, 254, 0.25);
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .card-head h3 { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .badge-sub { font-size: 0.7rem; color: var(--cyan-neon); background: rgba(0, 242, 254, 0.1); padding: 3px 8px; border-radius: 8px; }
+    .card-desc { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; }
+
+    .game-select-pills { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 16px; scrollbar-width: none; }
+    .game-pill {
+      background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-glass); color: var(--text-secondary);
+      padding: 8px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 6px;
+    }
+    .game-pill.active { background: rgba(245, 158, 11, 0.2); border-color: var(--amber-neon); color: #fff; box-shadow: 0 0 12px rgba(245, 158, 11, 0.3); }
+
+    .config-result-box { background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-md); padding: 16px; }
+    .config-item-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.8rem; }
+    .config-item-row:last-child { border-bottom: none; }
+    .cfg-label { color: var(--text-secondary); }
+    .cfg-value { font-weight: 700; font-family: var(--font-mono); color: var(--green-neon); }
+
+    .dns-options-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+    .dns-card {
+      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-md);
+      padding: 14px; display: flex; gap: 12px; cursor: pointer;
+    }
+    .dns-card.active { background: rgba(0, 242, 254, 0.08); border-color: var(--cyan-neon); }
+    .dns-radio { color: var(--cyan-neon); font-size: 1.1rem; margin-top: 2px; }
+    .dns-info h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
+    .dns-info p { font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px; }
+
+    .badge-free-sm { background: rgba(16, 185, 129, 0.2); color: var(--green-neon); font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+    .badge-vip-sm { background: rgba(245, 158, 11, 0.2); color: var(--amber-neon); font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+    .ios-install-steps { margin-top: 16px; background: rgba(0, 0, 0, 0.35); border-radius: var(--radius-md); padding: 14px; font-size: 0.75rem; }
+    .ios-install-steps h4 { font-size: 0.82rem; margin-bottom: 8px; color: #cbd5e1; }
+    .ios-install-steps ol { padding-left: 18px; color: var(--text-secondary); line-height: 1.8; }
+
+    .ping-servers-list { display: flex; flex-direction: column; gap: 10px; }
+    .ping-item {
+      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-md);
+      padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .server-info { display: flex; align-items: center; gap: 10px; }
+    .flag-icon { font-size: 1.2rem; }
+    .server-name { font-size: 0.82rem; font-weight: 600; }
+    .server-loc { font-size: 0.68rem; color: var(--text-muted); }
+    .ping-result-badge {
+      font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; padding: 4px 10px;
+      border-radius: 8px; background: rgba(16, 185, 129, 0.15); color: var(--green-neon);
+    }
+
+    .shortcut-features-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+    .shortcut-feat { font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+
+    .cyber-btn {
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #070a11; border: none;
+      font-family: var(--font-main); font-weight: 700; font-size: 0.85rem; padding: 12px 20px;
+      border-radius: var(--radius-md); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; text-decoration: none;
+    }
+    .cyber-btn.primary-glow { box-shadow: 0 4px 20px rgba(0, 242, 254, 0.35); }
+    .cyber-btn.purple-glow { background: linear-gradient(135deg, #9d4edd 0%, #7928ca 100%); color: #fff; box-shadow: 0 4px 20px rgba(157, 78, 221, 0.35); }
+    .btn-full { width: 100%; }
+    .text-link-btn { background: none; border: none; color: var(--cyan-neon); font-size: 0.75rem; cursor: pointer; }
+
+    .modal-backdrop {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      z-index: 9999999; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .ios-modal {
+      background: rgba(14, 20, 32, 0.96); border: 1px solid var(--border-glass-light); border-radius: var(--radius-lg);
+      padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 242, 254, 0.2);
+    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .modal-icon-badge {
+      width: 40px; height: 40px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); color: var(--amber-neon);
+      display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    }
+    .modal-icon-badge.update-badge { background: rgba(0, 242, 254, 0.15); color: var(--cyan-neon); margin: 0 auto 12px; }
+    .modal-close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; }
+    .modal-desc { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; }
+    .input-field-group { margin-bottom: 14px; text-align: left; }
+    .input-field-group label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .glass-input {
+      width: 100%; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--border-glass-light); color: var(--text-primary);
+      font-family: var(--font-mono); font-size: 0.85rem; padding: 12px 14px; border-radius: var(--radius-sm); outline: none;
+    }
+    .hwid-info-pill {
+      background: rgba(245, 158, 11, 0.1); border: 1px dashed rgba(245, 158, 11, 0.3);
+      padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.7rem; color: var(--amber-neon); margin-bottom: 16px;
+    }
+    .modal-error-msg {
+      background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;
+      padding: 10px; border-radius: var(--radius-sm); font-size: 0.75rem; margin-bottom: 14px;
+    }
+
+    .booster-loader-wrap { position: relative; width: 80px; height: 80px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+    .booster-spinner {
+      position: absolute; width: 100%; height: 100%; border-radius: 50%;
+      border: 3px solid rgba(0, 242, 254, 0.15); border-top-color: var(--cyan-neon); border-right-color: var(--green-neon);
+      animation: boosterSpin 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+    }
+    @keyframes boosterSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .booster-icon-center { font-size: 1.8rem; animation: pulse-ring 1.5s infinite; }
+    .boost-progress-steps {
+      display: flex; flex-direction: column; gap: 8px; margin-top: 16px; text-align: left;
+      background: rgba(0, 0, 0, 0.35); padding: 14px; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .boost-step { font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+    .boost-step.active { color: #fff; }
+
+    .app-footer { text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-glass); }
+    .footer-status-row { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px; }
+    .footer-copy { font-size: 0.68rem; color: var(--text-muted); }
+
+    /* CRITICAL: Hides modals until activated */
+    .hidden { display: none !important; }
+    .text-green { color: var(--green-neon); }
+    .text-amber { color: var(--amber-neon); }
+    .text-cyan { color: var(--cyan-neon); }
+    .text-purple { color: var(--purple-neon); }
+    .text-red { color: var(--red-neon); }
+    .text-center { text-align: center; }
+    .mt-3 { margin-top: 1rem; }
+
+    /* ======= INLINE ADMIN MODAL ======= */
+    .admin-modal-scroll { max-height: 85vh; overflow-y: auto; padding-right: 4px; }
+    .admin-modal-scroll::-webkit-scrollbar { width: 4px; }
+    .admin-modal-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    .admin-modal-wide { max-width: 460px; }
+    .admin-section { background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 16px; margin-bottom: 14px; }
+    .admin-section h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .admin-section p { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
+    .admin-quick-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .admin-quick-btn {
+      flex: 1; min-width: 120px; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass-light);
+      background: rgba(255,255,255,0.05); color: #fff; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;
+    }
+    .admin-quick-btn:hover { background: rgba(255,255,255,0.1); }
+    .admin-quick-btn.green-border { border-color: var(--green-neon); color: var(--green-neon); }
+    .admin-quick-btn.red-border { border-color: var(--red-neon); color: var(--red-neon); }
+    .admin-quick-btn.amber-border { border-color: var(--amber-neon); color: var(--amber-neon); }
+    .admin-inline-switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .ios-switch-mini { position: relative; display: inline-block; width: 48px; height: 26px; }
+    .ios-switch-mini input { opacity: 0; width: 0; height: 0; }
+    .ios-switch-mini .slider-mini {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+      transition: .3s; border-radius: 34px;
+    }
+    .ios-switch-mini .slider-mini:before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background-color: white; transition: .3s; border-radius: 50%;
+    }
+    .ios-switch-mini input:checked + .slider-mini { background: linear-gradient(135deg, #10b981, #00f2fe); border-color: #10b981; }
+    .ios-switch-mini input:checked + .slider-mini:before { transform: translateX(22px); }
+    .admin-status-pill {
+      display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: 700;
+    }
+    .admin-status-pill.on { background: rgba(16, 185, 129, 0.2); color: var(--green-neon); }
+    .admin-status-pill.off { background: rgba(245, 158, 11, 0.2); color: var(--amber-neon); }
+    .admin-open-full-btn {
+      display: block; width: 100%; padding: 10px; margin-top: 10px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border-glass-light); color: var(--cyan-neon);
+      font-size: 0.78rem; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none;
+      transition: all 0.2s;
+    }
+    .admin-open-full-btn:hover { background: rgba(0, 242, 254, 0.1); }
+    .admin-ver-display {
+      font-family: var(--font-mono); font-size: 1.5rem; font-weight: 800; text-align: center;
+      padding: 8px; color: #fff; margin-bottom: 10px;
+    }
+    .admin-ver-display.locked { color: var(--red-neon); }
+    .admin-ver-display.unlocked { color: var(--green-neon); }
+    .glass-textarea-mini {
+      width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-glass-light); color: var(--text-primary);
+      font-family: var(--font-main); font-size: 0.8rem; padding: 8px 10px; border-radius: var(--radius-sm); outline: none;
+      resize: vertical; min-height: 50px;
+    }
+
+    /* Strict Force Update Hard-Lockdown (100% Blocked) */
+    html.app-force-locked body {
+      overflow: hidden !important;
+      position: fixed !important;
+      width: 100vw !important;
+      height: 100vh !important;
+    }
+    html.app-force-locked .app-viewport,
+    html.app-force-locked .dynamic-island-wrapper,
+    html.app-force-locked .ambient-glow {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    html.app-force-locked #versionUpdateModal {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      z-index: 2147483647 !important;
+      background: #060911 !important;
+    }
+    html.app-force-locked #versionUpdateModal .alert-modal {
+      box-shadow: 0 0 50px rgba(0, 242, 254, 0.4), 0 0 100px rgba(0, 0, 0, 0.9) !important;
+      border: 1px solid var(--border-neon) !important;
+    }
+    html.app-force-locked .modal-backdrop:not(#versionUpdateModal) {
+      display: none !important;
+    }
+
+    /* Native iOS Instant Touch Feel (Zero 300ms Delay + Tactile Press) */
+    button, .tool-tab, .game-pill, .dns-card, .cyber-btn, .glass-icon-btn {
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+      transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .cyber-btn:active, .tool-tab:active, .game-pill:active, .dns-card:active, .glass-icon-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Touch Screen Calibration Pad */
+    .touch-pad-wrap {
+      position: relative;
+      width: 100%;
+      height: 230px;
+      border-radius: var(--radius-md);
+      background: radial-gradient(circle at center, rgba(0, 242, 254, 0.08), rgba(7, 10, 17, 0.92));
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      overflow: hidden;
+      margin: 12px 0;
+      touch-action: none;
+      box-shadow: inset 0 0 28px rgba(0, 242, 254, 0.12);
+    }
+    #touchCalibrationCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .touch-pad-hint {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 16px;
+      transition: opacity 0.25s ease;
+    }
+    .touch-pad-hint i {
+      font-size: 1.8rem;
+      color: var(--cyan-neon);
+      margin-bottom: 8px;
+      opacity: 0.85;
+    }
+    .touch-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .touch-metric-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      padding: 10px 8px;
+      text-align: center;
+    }
+    .touch-metric-val {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--cyan-neon);
+    }
+    .touch-metric-lbl {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .touch-calib-result {
+      background: rgba(16, 185, 129, 0.09);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+    }
+
+  </style>
+</head>
+<body class="ios-dark-theme">
+
+  <!-- Background Ambient Cyber Glows -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- iOS Dynamic Island Top Bar -->
+  <div class="dynamic-bar-wrapper">
+    <div class="dynamic-island" id="dynamicIsland">
+      <div class="island-pill">
+        <span class="live-dot pulse"></span>
+        <span class="island-title"><i class="fa-brands fa-apple"></i> Smooth iOS Engine</span>
+      </div>
+      <div class="island-status">
+        <span id="headerBatteryBadge"><i class="fa-solid fa-battery-half"></i> <span id="topBatteryVal">--%</span></span>
+        <span class="status-sep">|</span>
+        <span id="headerVipBadge" class="badge-free">FREE TIER</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Main Viewport Container -->
+  <div class="app-viewport">
+
+    <!-- Top Navigation Header -->
+    <header class="app-nav">
+      <div class="logo-box">
+        <div class="logo-icon">
+          <i class="fa-solid fa-bolt-lightning"></i>
+        </div>
+        <div>
+          <h1 class="brand-name">SMOOTH <span>iOS</span></h1>
+          <p class="brand-sub">Next-Gen Gaming Engine • Cloud Synced</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button class="glass-icon-btn" id="openAdminModalBtn" title="Admin Portal">
+          <i class="fa-solid fa-shield-halved"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Global Announcement Banner -->
+    <div id="announcementBanner" class="announcement-banner hidden">
+      <i class="fa-solid fa-bullhorn banner-icon"></i>
+      <div class="banner-text" id="announcementText">Notice from Admin</div>
+      <button class="banner-close" id="closeAnnouncementBtn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- Live Device Status Card (Battery, Model, Latency, HWID) -->
+    <section class="glass-card status-hud">
+      <div class="hud-header">
+        <span class="hud-label"><i class="fa-solid fa-microchip"></i> HARDWARE MONITOR</span>
+        <span class="hud-tag" id="hudConnection">FIREBASE CONNECTING...</span>
+      </div>
+
+      <div class="hud-grid">
+        <!-- Battery Meter -->
+        <div class="hud-stat-box">
+          <div class="stat-icon-wrap" id="batteryIconWrap">
+            <i class="fa-solid fa-battery-three-quarters" id="batteryIcon"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-val" id="hudBatteryPercent">--%</div>
+            <div class="stat-lbl" id="hudBatteryStatus">Checking Battery...</div>
+          </div>
+        </div>
+
+        <!-- Detected Device -->
+        <div class="hud-stat-box">
+          <div class="stat-icon-wrap phone-icon">
+            <i class="fa-brands fa-apple"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-val" id="hudDeviceModel">Detecting...</div>
+            <div class="stat-lbl">Target Device</div>
+          </div>
+        </div>
+
+        <!-- Network Latency -->
+        <div class="hud-stat-box">
+          <div class="stat-icon-wrap ping-icon">
+            <i class="fa-solid fa-wifi"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-val" id="hudPingVal">-- ms</div>
+            <div class="stat-lbl">Real-time Ping</div>
+          </div>
+        </div>
+
+        <!-- Device HWID Fingerprint -->
+        <div class="hud-stat-box">
+          <div class="stat-icon-wrap hwid-icon">
+            <i class="fa-solid fa-fingerprint"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-val hwid-val" id="hudHwidVal">HWID-XXXX</div>
+            <div class="stat-lbl">Device Lock ID</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Device Switcher for Testing -->
+      <div class="device-switcher-row">
+        <label for="deviceModelSelector"><i class="fa-solid fa-sliders"></i> Device Profile:</label>
+        <select id="deviceModelSelector" class="glass-select">
+          <option value="auto">Auto Detect (Default)</option>
+          <option value="iPhone 16 Pro Max">iPhone 16 Pro Max (A18 Pro)</option>
+          <option value="iPhone 15 Pro">iPhone 15 Pro (A17 Pro)</option>
+          <option value="iPhone 14 Pro">iPhone 14 Pro (A16 Bionic)</option>
+          <option value="iPhone 13 Pro">iPhone 13 Pro (A15 Bionic)</option>
+          <option value="iPhone 12">iPhone 12 (A14 Bionic)</option>
+          <option value="iPhone 11">iPhone 11 (A13 Bionic)</option>
+          <option value="iPad Pro M2">iPad Pro (M2 / 120Hz)</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- VIP / License Key Access Gate -->
+    <section class="glass-card auth-card" id="licenseGateCard">
+      <div class="auth-header">
+        <div class="auth-title-row">
+          <div class="tier-pill-box">
+            <button class="tier-tab-btn active" id="tabFree">FREE ACCESS</button>
+            <button class="tier-tab-btn" id="tabVip"><i class="fa-solid fa-crown"></i> VIP KEY LOGIN</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Free Mode View -->
+      <div class="tier-content" id="viewFree">
+        <div class="free-info">
+          <p><i class="fa-solid fa-circle-check text-green"></i> <strong>Free Mode Active:</strong> Standard game settings & Cloudflare DNS active.</p>
+          <p class="vip-promo">Unlock <strong>120FPS Extreme Configs</strong>, <strong>Zero-Lag Anti-Ad DNS</strong>, and <strong>Thermal Bypass Shortcut</strong> with a VIP License Key!</p>
+          <button class="cyber-btn primary-glow" id="openVipModalBtn">
+            <i class="fa-solid fa-key"></i> Enter VIP License Key
+          </button>
+        </div>
+      </div>
+
+      <!-- VIP Mode View (Hidden until key verified) -->
+      <div class="tier-content hidden" id="viewVipActive">
+        <div class="vip-status-banner">
+          <div class="vip-badge-row">
+            <span class="vip-crown-badge"><i class="fa-solid fa-crown"></i> SMOOTH VIP UNLOCKED</span>
+            <span class="key-bound-tag"><i class="fa-solid fa-lock"></i> 1-Device Bound</span>
+          </div>
+          <div class="vip-details">
+            <div><small>Active Key:</small> <code id="activeKeyDisplay">XXXX-XXXX-XXXX</code></div>
+            <div><small>Key Expiry:</small> <span id="activeKeyExpiry" class="text-green">Lifetime</span></div>
+          </div>
+          <button class="text-link-btn" id="unlinkKeyBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Switch / Logout Key</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Action Toolset Tabs -->
+    <div class="tool-tabs">
+      <button class="tool-tab active" data-tab="tab-games"><i class="fa-solid fa-gamepad"></i> Game Configs</button>
+      <button class="tool-tab" data-tab="tab-touch"><i class="fa-solid fa-hand-pointer"></i> Touch Lab</button>
+      <button class="tool-tab" data-tab="tab-dns"><i class="fa-solid fa-shield-virus"></i> iOS DNS Profile</button>
+      <button class="tool-tab" data-tab="tab-ping"><i class="fa-solid fa-satellite-dish"></i> Ping Radar</button>
+      <button class="tool-tab" data-tab="tab-shortcut"><i class="fa-solid fa-wand-magic-sparkles"></i> Siri Shortcut</button>
+    </div>
+
+    <!-- TAB 1: Game Settings Optimizer -->
+    <section class="tab-pane active" id="tab-games">
+      <div class="glass-card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-fire text-amber"></i> In-Game FPS & Thermal Engine</h3>
+          <span class="badge-sub">Auto-Tuned for <span id="currentDeviceLabel">iPhone</span></span>
+        </div>
+
+        <div class="game-select-pills">
+          <button class="game-pill active" data-game="pubg">
+            <i class="fa-solid fa-crosshairs"></i> PUBG Mobile
+          </button>
+          <button class="game-pill" data-game="freefire">
+            <i class="fa-solid fa-fire-flame-curved"></i> Free Fire
+          </button>
+          <button class="game-pill" data-game="freefiremax">
+            <i class="fa-solid fa-fire text-amber"></i> Free Fire MAX
+          </button>
+          <button class="game-pill" data-game="codm">
+            <i class="fa-solid fa-person-rifle"></i> COD Mobile
+          </button>
+          <button class="game-pill" data-game="genshin">
+            <i class="fa-solid fa-sparkles"></i> Genshin Impact
+          </button>
+        </div>
+
+        <!-- Optimized Specs Result Card -->
+        <div class="config-result-box" id="gameConfigBox">
+          <!-- Dynamic Content Rendered via JS -->
+        </div>
+
+        <!-- Pro Recoil Control & Sensitivity Presets (VIP Locked) -->
+        <div class="config-result-box mt-3" id="recoilPresetBox" style="margin-top: 14px; border: 1px solid rgba(0, 242, 254, 0.25);">
+          <!-- Dynamic Sensitivity & Recoil Control Presets Rendered via JS -->
+        </div>
+
+        <!-- Direct Game Launch Action -->
+        <div class="mt-3">
+          <button class="cyber-btn primary-glow btn-full" id="launchGameBtn" style="font-size: 0.95rem; padding: 14px;">
+            <i class="fa-solid fa-rocket"></i> <span id="launchBtnText">BOOST & LAUNCH GAME</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: iOS DNS Configuration Profile (.mobileconfig) -->
+    <section class="tab-pane" id="tab-dns">
+      <div class="glass-card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-network-wired text-cyan"></i> Apple Gaming DNS (.mobileconfig)</h3>
+          <span class="badge-sub">Native iOS Profile</span>
+        </div>
+        <p class="card-desc">
+          Safari එකෙන් direct download කරගත හැකි official Apple Configuration Profile එකක්. Background trackers block කර, Gaming Ping එක සහ Packet Loss අඩු කරයි.
+        </p>
+
+        <div class="dns-options-grid">
+          <div class="dns-card active" data-dns="cloudflare">
+            <div class="dns-radio"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="dns-info">
+              <h4>Cloudflare 1.1.1.1 Gaming DNS</h4>
+              <p>Ultra-low latency direct route to Asian servers.</p>
+              <span class="badge-free-sm">FREE</span>
+            </div>
+          </div>
+
+          <div class="dns-card" data-dns="google-dns">
+            <div class="dns-radio"><i class="fa-regular fa-circle"></i></div>
+            <div class="dns-info">
+              <h4>Google 8.8.8.8 Ultra-Stable DNS</h4>
+              <p>Best stable routing for Dialog, SLT & Mobitel networks.</p>
+              <span class="badge-free-sm">FREE</span>
+            </div>
+          </div>
+
+          <div class="dns-card" data-dns="adguard-vip">
+            <div class="dns-radio"><i class="fa-regular fa-circle"></i></div>
+            <div class="dns-info">
+              <h4>Smooth AdGuard VIP Anti-Track DNS</h4>
+              <p>Blocks background ads, reduces packet loss in games.</p>
+              <span class="badge-vip-sm"><i class="fa-solid fa-crown"></i> VIP</span>
+            </div>
+          </div>
+
+          <div class="dns-card" data-dns="quad9-vip">
+            <div class="dns-radio"><i class="fa-regular fa-circle"></i></div>
+            <div class="dns-info">
+              <h4>Quad9 9.9.9.9 Secure VIP Gaming DNS</h4>
+              <p>Encrypted DoH routing with threat & background tracker shield.</p>
+              <span class="badge-vip-sm"><i class="fa-solid fa-crown"></i> VIP</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="cyber-btn primary-glow btn-full" id="downloadDnsBtn" style="margin-bottom: 12px;">
+          <i class="fa-solid fa-download"></i> Download Apple DNS Profile (.mobileconfig)
+        </button>
+
+        <!-- Home Screen Native App Icon Profile (Web Clip .mobileconfig) -->
+        <div style="background: rgba(157, 78, 221, 0.08); border: 1px solid rgba(157, 78, 221, 0.3); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="font-size:0.84rem; color:#c084fc;"><i class="fa-brands fa-apple"></i> Home Screen App Icon Profile</strong>
+            <span class="badge-free-sm">WEB CLIP</span>
+          </div>
+          <p style="font-size:0.76rem; color:var(--text-secondary); margin-bottom:10px;">
+            මේක install කළාම <strong>Smooth Optimizer</strong> එක iPhone Home Screen එකේ native full-screen app icon එකක් විදිහට add වෙනවා!
+          </p>
+          <button class="cyber-btn purple-glow btn-full" id="downloadWebClipBtn" style="font-size:0.82rem; padding:10px;">
+            <i class="fa-solid fa-mobile-screen-button"></i> Install Home Screen App Icon (.mobileconfig)
+          </button>
+        </div>
+
+        <div class="ios-install-steps">
+          <h4><i class="fa-brands fa-apple"></i> iPhone එකට Install කරගන්නේ මෙහෙමයි:</h4>
+          <ol>
+            <li>ඉහත Download button එක tap කර <strong>"Allow"</strong> දෙන්න.</li>
+            <li>iPhone <strong>Settings</strong> > <strong>Profile Downloaded</strong> වෙත යන්න.</li>
+            <li><strong>"Install"</strong> tap කර passcode එක ඇතුළත් කරන්න. Finished!</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Ping & Latency Radar -->
+    <section class="tab-pane" id="tab-ping">
+      <div class="glass-card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-gauge-high text-green"></i> Live Game Server Ping Radar</h3>
+          <button class="glass-icon-btn-sm" id="refreshPingBtn" title="Test Again">
+            <i class="fa-solid fa-arrows-rotate"></i>
+          </button>
+        </div>
+        <p class="card-desc">Real-time response time to Asian & Global Gaming data centers.</p>
+
+        <div id="bestServerBanner" style="display:none; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:10px; padding:10px 12px; margin-bottom:12px; font-size:0.8rem;">
+          <i class="fa-solid fa-trophy text-amber"></i> <strong id="bestServerText">Finding best server...</strong>
+        </div>
+
+        <div class="ping-servers-list" id="pingServerList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: Siri Shortcut Launcher -->
+    <section class="tab-pane" id="tab-shortcut">
+      <div class="glass-card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-wand-magic-sparkles text-purple"></i> All-in-One Apple Gaming Shortcut</h3>
+          <span class="badge-sub">100% Real iOS Auto</span>
+        </div>
+        <p class="card-desc">
+          මේ actions 6ම <strong>එකම Apple Shortcut එකක්</strong> ඇතුළට දාලා Game එක open කරද්දීම auto run වෙන්න හදන්න පුළුවන් (100% Official Apple iOS).
+        </p>
+
+        <div class="shortcut-features-list">
+          <div class="shortcut-feat"><i class="fa-solid fa-bolt text-cyan"></i> <strong>1. Set Low Power Mode → OFF</strong> (Full CPU/GPU power + 120Hz ProMotion unlock).</div>
+          <div class="shortcut-feat"><i class="fa-solid fa-bell-slash text-purple"></i> <strong>2. Set Focus → Gaming / Do Not Disturb ON</strong> (Calls & notifications block).</div>
+          <div class="shortcut-feat"><i class="fa-solid fa-sun text-amber"></i> <strong>3. Set Brightness → 70% + True Tone OFF</strong> (Overheating / FPS drop අඩු කරයි).</div>
+          <div class="shortcut-feat"><i class="fa-solid fa-rotate text-green"></i> <strong>4. Set Orientation Lock → ON</strong> (Screen rotate වෙන එක නවත්තයි).</div>
+          <div class="shortcut-feat"><i class="fa-brands fa-bluetooth text-cyan"></i> <strong>5. Set Bluetooth → OFF</strong> *(Wired/Speaker play කරන අයට heat/battery ඉතුරුයි)*.</div>
+          <div class="shortcut-feat"><i class="fa-solid fa-gamepad text-green"></i> <strong>6. Open App → PUBG / Free Fire / CODM</strong> (කෙලින්ම game එක launch කරයි).</div>
+        </div>
+
+        <a href="shortcuts://create-shortcut" class="cyber-btn purple-glow btn-full" id="shortcutLinkBtn" style="margin-bottom: 10px;">
+          <i class="fa-brands fa-apple"></i> Open Apple Shortcuts Editor (iPhone)
+        </a>
+
+        <button type="button" class="cyber-btn btn-full" id="copyShortcutStepsBtn" style="background:rgba(0,242,254,0.12); border:1px solid rgba(0,242,254,0.3); color:#00f2fe; margin-bottom: 14px;" onclick="copyShortcutRecipe()">
+          <i class="fa-solid fa-copy"></i> Copy All 6 Shortcut Actions
+        </button>
+
+        <div class="ios-install-steps">
+          <h4><i class="fa-solid fa-robot text-cyan"></i> Game එක Open කරද්දීම 100% Auto Run වෙන්න හදන විදිහ:</h4>
+          <ol>
+            <li>iPhone <strong>Shortcuts</strong> app එක open කරලා යටින් <strong>Automation</strong> tab එකට යන්න.</li>
+            <li><strong>+ (New Automation) → App</strong> තෝරලා ඔයාගේ Game එක (Free Fire / PUBG) select කර <strong>"Is Opened" + "Run Immediately"</strong> දාන්න.</li>
+            <li>Next ගිහින් ඉහත actions 5ම (Low Power OFF, Focus ON, Brightness 70%, True Tone OFF, Orientation Lock ON) add කරලා <strong>Done</strong> ඔබන්න!</li>
+            <li><em>Bonus:</em> තව Automation එකක් <strong>"Is Closed"</strong> දාලා Focus OFF කළොත් game එකෙන් එළියට ආවම auto normal වෙනවා.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: Live Touch Screen Calibration & Drag Lab -->
+    <section class="tab-pane" id="tab-touch">
+      <div class="glass-card">
+        <div class="card-head">
+          <h3><i class="fa-solid fa-hand-pointer text-cyan"></i> Live Touch & Drag Calibration</h3>
+          <span class="badge-sub">Real-Time Screen Test</span>
+        </div>
+        <p class="card-desc">
+          පහත Touch Pad එක මත ඇඟිල්ලෙන් <strong>Drag / Swipe</strong> කරන්න. ඔබේ phone screen එකේ <strong>Touch Hz, Response Latency</strong> සහ ඇඟිල්ලේ speed එක live මැනලා හරියන Sensitivity එක auto calculate කරයි.
+        </p>
+
+        <div class="touch-metrics-grid">
+          <div class="touch-metric-box">
+            <div class="touch-metric-val" id="touchHzVal">-- Hz</div>
+            <div class="touch-metric-lbl">Touch Rate</div>
+          </div>
+          <div class="touch-metric-box">
+            <div class="touch-metric-val" id="touchMsVal">-- ms</div>
+            <div class="touch-metric-lbl">Response</div>
+          </div>
+          <div class="touch-metric-box">
+            <div class="touch-metric-val" id="touchSpeedVal">0 px/s</div>
+            <div class="touch-metric-lbl">Drag Speed</div>
+          </div>
+        </div>
+
+        <div class="touch-pad-wrap" id="touchPadWrap">
+          <canvas id="touchCalibrationCanvas"></canvas>
+          <div class="touch-pad-hint" id="touchPadHint">
+            <i class="fa-solid fa-fingerprint"></i>
+            <strong>Swipe / Drag Up Here</strong>
+            <span>ඔබේ ඇඟිල්ල screen එකේ drag කරලා touch smoothness එක test කරන්න</span>
+          </div>
+        </div>
+
+        <div class="touch-calib-result" id="touchCalibResult">
+          <strong class="text-green"><i class="fa-solid fa-crosshairs"></i> Auto-Calibrated Recommendation:</strong>
+          <div id="touchCalibText" style="margin-top:4px; color:var(--text-secondary);">
+            Pad එකේ swipe කළ සැනින් ඔබේ ඇඟිල්ලට ගැළපෙන Sensitivity සහ iOS Touch Speed මෙතන පෙන්නයි.
+          </div>
+        </div>
+
+        <button class="cyber-btn primary-glow btn-full" id="resetTouchPadBtn" style="margin-bottom: 14px;">
+          <i class="fa-solid fa-rotate-left"></i> Reset Calibration Pad
+        </button>
+
+        <div class="ios-install-steps">
+          <h4><i class="fa-brands fa-apple"></i> iPhone Touch Screen Smooth කරගන්න Real Settings:</h4>
+          <ol>
+            <li><strong>Settings &gt; Accessibility &gt; Touch &gt; Haptic Touch</strong> → <strong>Fast</strong> දාන්න.</li>
+            <li><strong>Settings &gt; Accessibility &gt; Touch &gt; Touch Accommodations</strong> → <strong>OFF</strong> කරන්න.</li>
+            <li><strong>Settings &gt; Accessibility &gt; Motion</strong> → <strong>Limit Frame Rate OFF</strong> තියන්න (120Hz ProMotion සඳහා).</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-status-row">
+        <span>App Version: <strong id="appVersionDisplay">v2.0 (Build 2)</strong></span>
+        <span>•</span>
+        <span>Live Players: <strong class="text-green" id="onlineUsersCount">1</strong> online</span>
+      </div>
+      <p class="footer-copy">Designed for iOS 15 - iOS 18+ • Smooth Optimizer Edition</p>
+    </footer>
+
+  </div> <!-- /app-viewport -->
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- VIP Key Login Modal -->
+  <div class="modal-backdrop hidden" id="vipKeyModal">
+    <div class="ios-modal">
+      <div class="modal-header">
+        <div class="modal-icon-badge"><i class="fa-solid fa-crown"></i></div>
+        <h3>Enter Smooth VIP License Key</h3>
+        <button class="modal-close-btn" id="closeVipModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          ඔබ ලබාගත් <strong>Smooth VIP License Key</strong> එක මෙහි ඇතුළත් කරන්න. මෙම key එක මෙම device එකට පමණක් <strong>(1 Key = 1 Device)</strong> lock වේ.
+        </p>
+
+        <div class="input-field-group">
+          <label><i class="fa-solid fa-key"></i> License Key</label>
+          <input type="text" id="vipKeyInput" class="glass-input" placeholder="e.g. SMOOTH-VIP-XXXX-XXXX" autocomplete="off" autocorrect="off" autocapitalize="characters">
+        </div>
+
+        <div class="hwid-info-pill">
+          <i class="fa-solid fa-lock"></i> Binding to this Device: <span id="modalHwidSpan">HWID-XXXX</span>
+        </div>
+
+        <div id="vipKeyError" class="modal-error-msg hidden">
+          <i class="fa-solid fa-triangle-exclamation"></i> <span id="vipKeyErrorText">Invalid License Key!</span>
+        </div>
+
+        <button class="cyber-btn primary-glow btn-full" id="activateKeyBtn">
+          <i class="fa-solid fa-bolt"></i> Activate VIP Access
+        </button>
+
+        <div class="modal-footer-note">
+          Key එකක් අවශ්‍යද? <a href="#" id="contactAdminForKey">Contact Admin / Support</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== INLINE ADMIN CONTROL MODAL ==================== -->
+  <div class="modal-backdrop hidden" id="adminModal">
+    <div class="ios-modal admin-modal-wide">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="modal-icon-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--green-neon);"><i class="fa-solid fa-shield-halved"></i></div>
+          <div>
+            <h3 style="font-size: 1rem;">Admin Control Panel</h3>
+            <span style="font-size: 0.65rem; color: var(--text-muted);">Firebase Real-Time Sync</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="closeAdminModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Admin Login -->
+      <div id="adminInlineLogin">
+        <div class="modal-body">
+          <p class="modal-desc">Admin Dashboard එකට login වීමට ඔබගේ Password එක ඇතුළත් කරන්න.</p>
+          <div class="input-field-group">
+            <label><i class="fa-solid fa-lock"></i> Admin Password</label>
+            <input type="password" id="adminInlinePassInput" class="glass-input" placeholder="••••••••••••" autocomplete="current-password">
+          </div>
+          <div id="adminInlineError" class="modal-error-msg hidden">
+            <i class="fa-solid fa-circle-exclamation"></i> Incorrect password!
+          </div>
+          <button class="cyber-btn primary-glow btn-full" id="adminInlineLoginBtn">
+            <i class="fa-solid fa-right-to-bracket"></i> Login
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Dashboard (after login) -->
+      <div id="adminInlineDashboard" class="hidden">
+        <div class="admin-modal-scroll">
+
+          <!-- Section 1: Version Control -->
+          <div class="admin-section">
+            <h4><i class="fa-solid fa-code-branch text-purple"></i> Version & Force Update Lock</h4>
+            <p>Firebase එකේ <code>latest_version</code> සහ <code>lastv</code> වෙනස් කරන්න. <strong>3</strong> දැම්මාම users ලාට Update Modal එක lock වේ.</p>
+            <div class="admin-ver-display" id="adminVerDisplay">v2</div>
+            <div class="admin-quick-row">
+              <button class="admin-quick-btn green-border" id="adminSetV1Btn">
+                <i class="fa-solid fa-circle-check"></i> Version = 2 (Unlock)
+              </button>
+              <button class="admin-quick-btn red-border" id="adminSetV2Btn">
+                <i class="fa-solid fa-lock"></i> Version = 3 (Lock)
+              </button>
+            </div>
+            <div class="input-field-group" style="margin-bottom: 8px;">
+              <label>Custom Version (Optional)</label>
+              <input type="text" id="adminCustomVerInput" class="glass-input" placeholder="e.g. 3 or 4">
+            </div>
+            <button class="admin-quick-btn amber-border" id="adminSetCustomVerBtn" style="width: 100%; margin-bottom: 8px;">
+              <i class="fa-solid fa-bullhorn"></i> Push Custom Version to Firebase
+            </button>
+          </div>
+
+          <!-- Section 2: Free VIP Master Switch -->
+          <div class="admin-section">
+            <h4><i class="fa-solid fa-crown text-amber"></i> Free-to-VIP Master Switch</h4>
+            <p>ON කළ විට Free users ලාටත් 120FPS, Anti-Ad DNS, VIP configs real-time unlock වේ.</p>
+            <div class="admin-inline-switch">
+              <span style="font-size: 0.8rem; font-weight: 600;">Free VIP for All Users</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="admin-status-pill off" id="adminFreeVipBadge">OFF</span>
+                <label class="ios-switch-mini">
+                  <input type="checkbox" id="adminFreeVipToggle">
+                  <span class="slider-mini"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Announcement -->
+          <div class="admin-section">
+            <h4><i class="fa-solid fa-message text-green"></i> Live Announcement Banner</h4>
+            <div class="input-field-group" style="margin-bottom: 8px;">
+              <label>Banner Message</label>
+              <input type="text" id="adminAnnouncementInput" class="glass-input" placeholder="e.g. VIP Sale! 50% off until Dec 1">
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+              <input type="checkbox" id="adminAnnouncementActive" checked>
+              <label style="font-size: 0.75rem; color: var(--text-secondary);">Show on client site</label>
+            </div>
+            <button class="admin-quick-btn green-border" id="adminPushAnnouncementBtn" style="width: 100%;">
+              <i class="fa-solid fa-paper-plane"></i> Push Announcement
+            </button>
+          </div>
+
+          <!-- Section 4: Quick Key Generator -->
+          <div class="admin-section">
+            <h4><i class="fa-solid fa-key text-cyan"></i> Quick VIP Key Generator</h4>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <select id="adminKeyPlanSelect" class="glass-input" style="flex: 1; padding: 8px;">
+                <option value="1_day">1 Day</option>
+                <option value="7_days">7 Days</option>
+                <option value="30_days" selected>30 Days</option>
+                <option value="lifetime">Lifetime</option>
+              </select>
+              <button class="admin-quick-btn amber-border" id="adminGenKeyBtn" style="flex: 0 0 auto; min-width: unset; padding: 8px 14px;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate
+              </button>
+            </div>
+            <div id="adminGenKeyResult" class="hidden" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px; font-family: var(--font-mono); font-size: 0.85rem; color: var(--green-neon); word-break: break-all;">
+            </div>
+          </div>
+
+          <!-- Open Full Admin Page -->
+          <a href="admin.html" class="admin-open-full-btn" target="_blank">
+            <i class="fa-solid fa-expand"></i> Open Full Admin Dashboard (admin.html)
+          </a>
+
+          <button class="admin-open-full-btn" id="adminInlineLogoutBtn" style="color: var(--red-neon); margin-top: 6px;">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Version Alert Modal (Strict Force Update Lock) -->
+  <div class="modal-backdrop hidden" id="versionUpdateModal">
+    <div class="ios-modal alert-modal">
+      <div class="modal-header text-center">
+        <div class="modal-icon-badge update-badge"><i class="fa-solid fa-rocket"></i></div>
+        <h3>නව Version එකක් නිකුත් වී ඇත!</h3>
+      </div>
+      <div class="modal-body text-center">
+        <p class="update-v-text">Latest Version: <strong id="newVersionTag">Version 3</strong></p>
+        <p class="update-notes" id="newVersionNotes">
+          Smooth iOS Game Engine Version 3 නිකුත් කර ඇත. පැරණි Version 2 භාවිතා කළ නොහැක. කරුණාකර අලුත් Version 3 ලබාගන්න.
+        </p>
+        <button class="cyber-btn primary-glow btn-full" id="acceptUpdateBtn">
+          <i class="fa-solid fa-rotate"></i> Update to Version 3
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Launch / Game Booster Animated Modal -->
+  <div class="modal-backdrop hidden" id="gameBoostModal">
+    <div class="ios-modal alert-modal text-center">
+      <div class="booster-loader-wrap">
+        <div class="booster-spinner"></div>
+        <div class="booster-icon-center"><i class="fa-solid fa-bolt-lightning text-cyan"></i></div>
+      </div>
+      <h3 style="margin-top: 16px; font-size: 1.15rem;" id="boostModalTitle">Optimizing for Free Fire...</h3>
+      <div class="boost-progress-steps">
+        <div class="boost-step active" id="bStep1"><i class="fa-solid fa-check text-green"></i> System RAM & Cache Flushed</div>
+        <div class="boost-step active" id="bStep2"><i class="fa-solid fa-check text-green"></i> Low-Latency Gaming DNS Activated</div>
+        <div class="boost-step active" id="bStep3"><i class="fa-solid fa-check text-green"></i> 120 FPS Thermal Profile Applied</div>
+        <div class="boost-step pending" id="bStep4"><i class="fa-solid fa-spinner fa-spin text-cyan"></i> Launching Game...</div>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 14px;">
+        iPhone එකෙන් "Open" ඇසුවහොත් Allow කරන්න.
+      </p>
+    </div>
+  </div>
+
+    <!-- ========================================================
+       EMBEDDED SELF-CONTAINED JAVASCRIPT ENGINE
+       Guaranteed to execute on GitHub Pages, Netlify, Localhost,
+       and all mobile devices without ANY missing file / 404 errors!
+       ======================================================== -->
+  <script>
+    /**
+     * 1. FIREBASE REALTIME DATABASE & CLOUD ENGINE
+     */
+    const FIREBASE_DEFAULT_CONFIG = {
+      apiKey: "AIzaSyDummyKeyForSmoothRtdb1234567890",
+      databaseURL: "https://smoothoptimizer-default-rtdb.firebaseio.com",
+      projectId: "smoothoptimizer"
+    };
+
+    const IOS_ROOT_PATH = "ios_optimizer";
+
+    const STORAGE_KEYS = {
+      FIREBASE_CONFIG: 'smooth_ios_fb_config',
+      ADMIN_AUTH: 'smooth_ios_admin_auth',
+      APP_SETTINGS: 'smooth_ios_app_settings',
+      LICENSE_KEYS: 'smooth_ios_license_keys',
+      ONLINE_DEVICES: 'smooth_ios_online_devices'
+    };
+
+    const DEFAULT_APP_SETTINGS = {
+      current_version: '2',
+      latest_version: '2',
+      v: '2',
+      lastv: '2',
+      version_notes: 'Smooth iOS Gaming Core v3 - 120FPS Extreme Configs & Thermal Guard.',
+      force_update: true,
+      free_vip_enabled: false,
+      announcement: {
+        active: false,
+        message: '🔥 Smooth iOS Optimizer Active! Connected to Smooth Cloud RTDB.'
+      }
+    };
+
+    const INITIAL_STARTER_KEYS = [
+      {
+        key: 'SMOOTH-VIP-2026-X1',
+        plan: 'lifetime',
+        price: 'Rs. 3500 - VIP Elite',
+        hwid: null,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        expires_at: null
+      },
+      {
+        key: 'SMOOTH-VIP-30D-K89',
+        plan: '30_days',
+        price: 'Rs. 1000 - Pro Pass',
+        hwid: null,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    class SmoothCloudEngine {
+      constructor() {
+        this.initStorage();
+        this.startDirectRestSync();
+      }
+
+      initStorage() {
+        try {
+          const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.APP_SETTINGS));
+          if (stored && (stored.latest_version === 'v2.4.0' || stored.lastv === 'v2.4.0')) {
+            stored.latest_version = '1';
+            stored.v = '1';
+            stored.lastv = '1';
+            stored.current_version = '1';
+            localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(stored));
+          }
+        } catch (e) {}
+
+        if (!localStorage.getItem(STORAGE_KEYS.APP_SETTINGS)) {
+          localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(DEFAULT_APP_SETTINGS));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.LICENSE_KEYS)) {
+          localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(INITIAL_STARTER_KEYS));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.ONLINE_DEVICES)) {
+          localStorage.setItem(STORAGE_KEYS.ONLINE_DEVICES, JSON.stringify({}));
+        }
+      }
+
+      startDirectRestSync() {
+        const baseUrl = FIREBASE_DEFAULT_CONFIG.databaseURL;
+
+        // JSONP script injection
+        const injectJsonp = (endpoint, cbName) => {
+          const id = `jsonp_client_${endpoint.replace(/[^a-zA-Z0-9]/g, '_')}`;
+          const existing = document.getElementById(id);
+          if (existing) existing.remove();
+
+          const s = document.createElement('script');
+          s.id = id;
+          s.src = `${baseUrl}/${endpoint}.json?callback=${cbName}&_=${Date.now()}`;
+          s.onerror = () => s.remove();
+          s.onload = () => s.remove();
+          document.head.appendChild(s);
+        };
+
+        // Global JSONP Callbacks
+        window.__smoothClientKeysCb = (data) => {
+          if (data) {
+            const list = Array.isArray(data) ? data.filter(Boolean) : Object.values(data).filter(Boolean);
+            if (list.length > 0) {
+              localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(list));
+              this.triggerSyncEvent('keys_updated', list);
+            }
+          }
+        };
+
+        window.__smoothClientSettingsCb = (data) => {
+          if (data && typeof data === 'object') {
+            const cur = this.getSettings();
+            const curVer = cur.latest_version || cur.v || '1';
+            const merged = { ...cur, ...data };
+            if (parseFloat(data.latest_version) > parseFloat(curVer)) {
+              merged.latest_version = String(data.latest_version);
+              this.handleRemoteVersion(merged.latest_version, 'JSONP:Settings');
+            } else if (parseFloat(curVer) > 1) {
+              merged.latest_version = curVer;
+              merged.v = curVer;
+              merged.lastv = curVer;
+            }
+            localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(merged));
+            this.triggerSyncEvent('settings_updated', merged);
+          }
+        };
+
+        window.__smoothClientVersionCb = (data) => {
+          if (data !== null && data !== undefined) {
+            this.handleRemoteVersion(data, 'JSONP: Version');
+          }
+        };
+
+        const runSync = () => {
+          // 1. Fetch Keys from Firebase RTDB
+          fetch(`${baseUrl}/${IOS_ROOT_PATH}/keys.json?_=${Date.now()}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+              if (data) {
+                const list = Array.isArray(data) ? data.filter(Boolean) : Object.values(data).filter(Boolean);
+                if (list.length > 0) {
+                  localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(list));
+                  this.triggerSyncEvent('keys_updated', list);
+                }
+              }
+            })
+            .catch(() => {
+              injectJsonp(`${IOS_ROOT_PATH}/keys`, '__smoothClientKeysCb');
+            });
+
+          // 2. Fetch Root Version from Firebase RTDB (Single Authority for Version Lock)
+          fetch(`${baseUrl}/latest_version.json?_=${Date.now()}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(vData => {
+              if (vData !== null && vData !== undefined) {
+                this.handleRemoteVersion(vData, 'Root');
+              } else {
+                return fetch(`${baseUrl}/v.json?_=${Date.now()}`).then(r => r.ok ? r.json() : null);
+              }
+            })
+            .then(vData => {
+              if (vData !== null && vData !== undefined) {
+                this.handleRemoteVersion(vData, 'Root-v');
+              }
+            })
+            .catch(() => {
+              injectJsonp('latest_version', '__smoothClientVersionCb');
+            });
+
+          // 3. Fetch Settings (Announcement & Free VIP only - Root is exclusive version authority)
+          fetch(`${baseUrl}/${IOS_ROOT_PATH}/settings.json?_=${Date.now()}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(remoteSettings => {
+              if (remoteSettings && typeof remoteSettings === 'object') {
+                const cur = this.getSettings();
+                if (remoteSettings.announcement) cur.announcement = remoteSettings.announcement;
+                if (remoteSettings.free_vip_enabled !== undefined) cur.free_vip_enabled = remoteSettings.free_vip_enabled;
+                if (remoteSettings.version_notes) cur.version_notes = remoteSettings.version_notes;
+                if (remoteSettings.update_url !== undefined) cur.update_url = remoteSettings.update_url;
+                if (remoteSettings.shortcut_url !== undefined) cur.shortcut_url = remoteSettings.shortcut_url;
+                localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(cur));
+                this.triggerSyncEvent('settings_updated', cur);
+              }
+            })
+            .catch(() => {
+              injectJsonp(`${IOS_ROOT_PATH}/settings`, '__smoothClientSettingsCb');
+            });
+        };
+
+        runSync();
+        setInterval(runSync, 2000);
+      }
+
+      handleRemoteVersion(remoteVal, source = '') {
+        if (remoteVal === null || remoteVal === undefined) return;
+        const vStr = String(remoteVal).replace(/[^0-9.]/g, '').trim();
+        const vNum = parseFloat(vStr);
+        if (isNaN(vNum)) return;
+
+        const current = this.getSettings();
+        current.latest_version = String(vNum);
+        current.v = String(vNum);
+        current.lastv = String(vNum);
+        localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(current));
+
+        // STRICT RULE: Only lock if version is 3 or higher (Current App = Version 2)!
+        if (vNum >= 3) {
+          localStorage.setItem('smooth_force_locked', 'true');
+          document.documentElement.classList.add('app-force-locked');
+        } else {
+          localStorage.removeItem('smooth_force_locked');
+          document.documentElement.classList.remove('app-force-locked');
+        }
+
+        this.triggerSyncEvent('settings_updated', current);
+
+        const hudConn = document.getElementById('hudConnection');
+        if (hudConn) {
+          hudConn.textContent = `FIREBASE: Version = ${vStr}`;
+          hudConn.style.color = vNum >= 3 ? '#ef4444' : '#10b981';
+        }
+      }
+
+      getSettings() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEYS.APP_SETTINGS)) || DEFAULT_APP_SETTINGS;
+        } catch (e) {
+          return DEFAULT_APP_SETTINGS;
+        }
+      }
+
+      async updateSettings(newSettings) {
+        const current = this.getSettings();
+        const updated = { ...current, ...newSettings };
+
+        const baseUrl = FIREBASE_DEFAULT_CONFIG.databaseURL;
+        const vVal = updated.latest_version || updated.v || updated.lastv;
+        if (vVal !== undefined) {
+          const vStr = String(vVal).trim();
+          updated.latest_version = vStr;
+          updated.v = vStr;
+          updated.lastv = vStr;
+          const numVal = Number(vStr) || vStr;
+
+          try {
+            fetch(`${baseUrl}/latest_version.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(numVal)
+            }).catch(() => {});
+            fetch(`${baseUrl}/v.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(numVal)
+            }).catch(() => {});
+            fetch(`${baseUrl}/lastv.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(numVal)
+            }).catch(() => {});
+          } catch (e) {}
+
+          if (parseFloat(vStr) > 1) {
+            localStorage.setItem('smooth_force_locked', 'true');
+            document.documentElement.classList.add('app-force-locked');
+          } else {
+            localStorage.removeItem('smooth_force_locked');
+            document.documentElement.classList.remove('app-force-locked');
+          }
+        }
+
+        localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(updated));
+
+        try {
+          fetch(`${baseUrl}/${IOS_ROOT_PATH}/settings.json`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updated)
+          }).catch(() => {});
+        } catch (e) {}
+
+        this.triggerSyncEvent('settings_updated', updated);
+        return updated;
+      }
+
+      getKeys() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEYS.LICENSE_KEYS)) || [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      getPlanDurationMs(plan) {
+        if (!plan || plan === 'lifetime') return null;
+        if (plan === '1_day') return 1 * 24 * 60 * 60 * 1000;
+        if (plan === '7_days') return 7 * 24 * 60 * 60 * 1000;
+        if (plan === '30_days') return 30 * 24 * 60 * 60 * 1000;
+        const match = String(plan).match(/(\d+)/);
+        if (match) return parseInt(match[1], 10) * 24 * 60 * 60 * 1000;
+        return 30 * 24 * 60 * 60 * 1000;
+      }
+
+      async fetchLatestKeysFromCloud() {
+        try {
+          const res = await fetch(`${FIREBASE_DEFAULT_CONFIG.databaseURL}/${IOS_ROOT_PATH}/keys.json?_=${Date.now()}`, { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(data));
+              return data;
+            } else if (data && typeof data === 'object') {
+              const arr = Object.values(data);
+              localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(arr));
+              return arr;
+            }
+          }
+        } catch (e) {}
+        return this.getKeys();
+      }
+
+      async saveKeys(keys) {
+        localStorage.setItem(STORAGE_KEYS.LICENSE_KEYS, JSON.stringify(keys));
+        try {
+          await fetch(`${FIREBASE_DEFAULT_CONFIG.databaseURL}/${IOS_ROOT_PATH}/keys.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(keys)
+          });
+        } catch (e) {}
+        this.triggerSyncEvent('keys_updated', keys);
+      }
+
+      async generateKey(plan = '30_days', price = 'Rs. 1000') {
+        const keys = await this.fetchLatestKeysFromCloud();
+        const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const randomChar = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        const prefix = 'SMOOTH-VIP';
+        const newKeyCode = `${prefix}-${randomHex}-${randomChar}`;
+
+        const newKeyObj = {
+          key: newKeyCode,
+          plan: plan,
+          price: price,
+          hwid: null,
+          created_at: new Date().toISOString(),
+          expires_at: null,
+          status: 'active'
+        };
+
+        keys.unshift(newKeyObj);
+        await this.saveKeys(keys);
+        return newKeyObj;
+      }
+
+      async redeemKey(inputKey, deviceHwid, skipCloudFetch = false) {
+        const keys = skipCloudFetch ? this.getKeys() : await this.fetchLatestKeysFromCloud();
+        const cleanInput = inputKey.trim().toUpperCase();
+        const keyItem = keys.find(k => k.key && k.key.trim().toUpperCase() === cleanInput);
+
+        if (!keyItem) return { success: false, message: 'Invalid License Key! Check the code or contact Admin.' };
+        if (keyItem.status === 'banned') return { success: false, message: 'This License Key has been banned by Admin.' };
+
+        // Check if already expired
+        if (keyItem.expires_at && new Date(keyItem.expires_at).getTime() <= Date.now()) {
+          keyItem.status = 'expired';
+          await this.saveKeys(keys);
+          return { success: false, message: '⏰ මේ License Key එකේ කාලය අවසන් (Expired)! නව VIP Key එකක් ලබාගන්න.' };
+        }
+
+        // First-time activation: lock strictly to this first device + start day countdown
+        if (keyItem.hwid === null || keyItem.hwid === undefined || keyItem.hwid === '') {
+          const now = Date.now();
+          const durationMs = this.getPlanDurationMs(keyItem.plan);
+          keyItem.hwid = deviceHwid;
+          keyItem.status = 'active';
+          keyItem.bound_at = new Date(now).toISOString();
+          keyItem.expires_at = durationMs ? new Date(now + durationMs).toISOString() : null;
+          await this.saveKeys(keys);
+          return { success: true, message: 'VIP Activated & Locked to this Device! (කාලය අවසන් වෙනකන් මේ device එකේ වැඩ කරනවා)', keyData: keyItem };
+        } else if (keyItem.hwid === deviceHwid) {
+          // Same bound device returning within valid days
+          return { success: true, message: 'Welcome back VIP Member!', keyData: keyItem };
+        } else {
+          // Different device blocked!
+          return { success: false, message: '🚫 මේ License Key එක දැනටමත් වෙනත් Device එකකට Lock වී ඇත! (1 Key = පළවෙනියට log වුණ Device එකට පමණයි)' };
+        }
+      }
+
+      sendDeviceHeartbeat(deviceInfo) {
+        if (!deviceInfo || !deviceInfo.hwid) return;
+        try {
+          const devices = JSON.parse(localStorage.getItem(STORAGE_KEYS.ONLINE_DEVICES)) || {};
+          const payload = { ...deviceInfo, last_seen: Date.now() };
+          devices[deviceInfo.hwid] = payload;
+          localStorage.setItem(STORAGE_KEYS.ONLINE_DEVICES, JSON.stringify(devices));
+
+          // Push device heartbeat to Firebase RTDB under /ios_optimizer/online_devices/<hwid>.json
+          const safeHwid = encodeURIComponent(deviceInfo.hwid.replace(/[.#$[]]/g, '_'));
+          fetch(`${FIREBASE_DEFAULT_CONFIG.databaseURL}/${IOS_ROOT_PATH}/online_devices/${safeHwid}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).catch(() => {});
+        } catch (e) {}
+      }
+
+      getActiveDevices(timeoutMs = 60000) {
+        try {
+          const devices = JSON.parse(localStorage.getItem(STORAGE_KEYS.ONLINE_DEVICES)) || {};
+          const now = Date.now();
+          const activeList = [];
+          for (const hwid in devices) {
+            if (devices[hwid] && devices[hwid].last_seen && (now - devices[hwid].last_seen < timeoutMs)) {
+              activeList.push(devices[hwid]);
+            }
+          }
+          return activeList;
+        } catch (e) { return []; }
+      }
+
+      triggerSyncEvent(eventName, payload) {
+        window.dispatchEvent(new CustomEvent('smooth_db_sync', { detail: { eventName, payload } }));
+      }
+    }
+
+    window.AuraDB = new SmoothCloudEngine();
+
+    /**
+     * 2. MAIN APPLICATION CLIENT LOGIC
+     */
+    const APP_CURRENT_VERSION = '1';
+
+    function isNewerVersion(remote, current = APP_CURRENT_VERSION) {
+      if (remote === null || remote === undefined) return false;
+      const rStr = String(remote).replace(/[^0-9.]/g, '').trim();
+      const cStr = String(current).replace(/[^0-9.]/g, '').trim();
+      const rNum = parseFloat(rStr);
+      const cNum = parseFloat(cStr);
+      if (!isNaN(rNum) && !isNaN(cNum)) {
+        return rNum > cNum;
+      }
+      return false;
+    }
+
+    const AppState = {
+      hwid: null,
+      deviceModel: 'Auto Detect',
+      isIos: false,
+      batteryPercent: null,
+      isCharging: false,
+      currentPing: 28,
+      tier: 'free',
+      activeKey: null,
+      selectedGame: 'pubg',
+      selectedDns: 'cloudflare'
+    };
+
+    const GAME_CONFIGS = {
+      pubg: {
+        title: 'PUBG Mobile',
+        urlScheme: 'pubgmobile://',
+        free: { graphics: 'Smooth', frameRate: 'Ultra (45 - 60 FPS)', resolution: '720p Balanced', thermalTuning: 'Auto brightness cap at 70%', antiAliasing: 'Disabled' },
+        vip: { graphics: 'Extreme Smooth (Zero Shaders)', frameRate: 'Ultra Extreme (90 - 120 FPS Unlocked)', resolution: 'Native Retina HD', thermalTuning: 'Zero-Throttling Bypass Active', antiAliasing: '4X FXAA Hardware Accelerated' }
+      },
+      freefire: {
+        title: 'Free Fire',
+        urlScheme: 'freefire://',
+        free: { graphics: 'Standard', frameRate: 'High (60 FPS)', resolution: 'Standard HD', thermalTuning: 'Dynamic Refresh', antiAliasing: 'Off' },
+        vip: { graphics: 'Ultra Shadow-less (Competitive Profile)', frameRate: 'Super High 120Hz ProMotion Lock', resolution: 'Custom Stretched Aspect Ratio', thermalTuning: 'Zero Frame Drops Overheat Guard', antiAliasing: 'Active Fast-Sync' }
+      },
+      freefiremax: {
+        title: 'Free Fire MAX',
+        urlScheme: 'freefiremax://',
+        free: { graphics: 'Standard MAX', frameRate: 'High (60 FPS)', resolution: 'Standard HD', thermalTuning: 'Standard Battery Guard', antiAliasing: 'Off' },
+        vip: { graphics: 'Ultra HD Shadows Off (MAX Zero-Lag)', frameRate: 'Super High 120Hz ProMotion Ultra Max', resolution: 'Retina Crisp 1080p Stretched', thermalTuning: 'Thermal Guard Active (Zero FPS Drop)', antiAliasing: 'MetalFX Fast-Sync Enabled' }
+      },
+      codm: {
+        title: 'Call of Duty: Mobile',
+        urlScheme: 'codm://',
+        free: { graphics: 'Low', frameRate: 'Max (60 FPS)', resolution: '720p', thermalTuning: 'Standard Battery Saver', antiAliasing: 'Off' },
+        vip: { graphics: 'Low + Ultra Shadows Off', frameRate: 'Ultra (120 FPS Max ProMotion)', resolution: 'Uncompressed Dynamic Buffer', thermalTuning: 'Bypass CPU Core Throttling', antiAliasing: 'Multi-Sampling Low Latency' }
+      },
+      genshin: {
+        title: 'Genshin Impact',
+        urlScheme: 'genshinimpact://',
+        free: { graphics: 'Medium', frameRate: '30 - 45 FPS', resolution: 'Medium', thermalTuning: 'Thermal safety cap', antiAliasing: 'SMAA' },
+        vip: { graphics: 'Optimized Custom (MetalFX)', frameRate: 'Locked 60 FPS Stable', resolution: 'MetalFX Quality Mode', thermalTuning: 'Max Memory Flush before Launch', antiAliasing: 'Metal 3 Hardware Upscaler' }
+      }
+    };
+
+    const SENSITIVITY_PRESETS = {
+      pubg: {
+        general: '125% (TPP) / 115% (FPP)',
+        redDot: '58% ADS / 320% Gyro',
+        scope2x: '36% ADS / 285% Gyro',
+        scope4x: '22% ADS / 210% Gyro',
+        iosTouch: 'Gliding Cursor: Refined • Speed: 82 • Touch Accommodations: Off'
+      },
+      freefire: {
+        general: '192 (Pro Drag Control)',
+        redDot: '185 (Crisp Aim Stability)',
+        scope2x: '176 (Mid-Range Spray)',
+        scope4x: '164 (Long-Range Tap)',
+        iosTouch: 'Gliding Cursor: Single • Speed: 105 • Pointer Size: Min'
+      },
+      freefiremax: {
+        general: '196 (MAX 120Hz Smooth)',
+        redDot: '188 (Steady Recoil Drag)',
+        scope2x: '178 (Balanced Control)',
+        scope4x: '168 (Precision Scope)',
+        iosTouch: 'Gliding Cursor: Single • Speed: 110 • AssistiveTouch Tracking: Max'
+      },
+      codm: {
+        general: '142 (Standard Camera)',
+        redDot: '118 (ADS Recoil Balance)',
+        scope2x: '96 (Tactical Scope)',
+        scope4x: '74 (Sniper / 4x Control)',
+        iosTouch: 'Fixed Speed Mode • iOS Pointer Speed: 90 • Haptic: Off'
+      },
+      genshin: {
+        general: 'Camera X: 4 / Y: 4',
+        redDot: 'Aimed Shot X: 3 / Y: 3',
+        scope2x: 'Combat Camera: Default',
+        scope4x: 'Auto-Reset Camera: Off',
+        iosTouch: '120Hz ProMotion On • Low Power Mode: Off'
+      }
+    };
+
+    const PING_SERVERS = [
+      { id: 'sg', name: 'Singapore (SEA Core)', location: 'AWS ap-southeast-1', flag: '🇸🇬', url: 'https://dynamodb.ap-southeast-1.amazonaws.com/ping' },
+      { id: 'in', name: 'India / Mumbai (Asia Central)', location: 'AWS ap-south-1', flag: '🇮🇳', url: 'https://dynamodb.ap-south-1.amazonaws.com/ping' },
+      { id: 'jp', name: 'Tokyo / Japan (East Asia)', location: 'AWS ap-northeast-1', flag: '🇯🇵', url: 'https://dynamodb.ap-northeast-1.amazonaws.com/ping' },
+      { id: 'me', name: 'Dubai / Middle East', location: 'AWS me-central-1', flag: '🇦🇪', url: 'https://dynamodb.me-central-1.amazonaws.com/ping' }
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initHwid();
+      initDeviceDetection();
+      initBatteryMonitor();
+      initAuthAndLicense();
+      initGameConfigs();
+      initDnsGenerator();
+      initPingRadar();
+      initTouchCalibrationLab();
+      initNativeTouchFeel();
+      initVersionAndAnnouncements();
+      initInlineAdminControls();
+      startHeartbeat();
+      setupEventListeners();
+    });
+
+    function initHwid() {
+      let storedHwid = localStorage.getItem('aura_client_hwid');
+      if (!storedHwid) {
+        const randPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const screenPart = `${window.screen.width}x${window.screen.height}`;
+        storedHwid = `IOS-${randPart}-${screenPart.substring(0, 4)}`;
+        localStorage.setItem('aura_client_hwid', storedHwid);
+      }
+      AppState.hwid = storedHwid;
+
+      const hwidEl = document.getElementById('hudHwidVal');
+      if (hwidEl) hwidEl.textContent = storedHwid;
+      const modalHwidEl = document.getElementById('modalHwidSpan');
+      if (modalHwidEl) modalHwidEl.textContent = storedHwid;
+    }
+
+    function initDeviceDetection() {
+      const ua = navigator.userAgent;
+      AppState.isIos = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      let detectedName = 'iPhone (iOS)';
+      if (AppState.isIos) {
+        const maxDim = Math.max(window.screen.width, window.screen.height);
+        if (maxDim >= 932) detectedName = 'iPhone 14/15/16 Pro Max';
+        else if (maxDim >= 926) detectedName = 'iPhone 12/13/14 Plus/Max';
+        else if (maxDim >= 896) detectedName = 'iPhone 11 / XR / XS Max';
+        else if (maxDim >= 852) detectedName = 'iPhone 14/15/16 Pro';
+        else if (maxDim >= 844) detectedName = 'iPhone 12/13/14';
+        else if (maxDim >= 812) detectedName = 'iPhone X / XS / 11 Pro';
+        else detectedName = 'Apple iPhone / iPad';
+      } else if (/Android/i.test(ua)) {
+        detectedName = 'Android Device';
+      } else {
+        detectedName = 'Desktop Browser';
+      }
+
+      AppState.deviceModel = detectedName;
+      updateDeviceDisplay(detectedName);
+
+      const selector = document.getElementById('deviceModelSelector');
+      if (selector) {
+        selector.addEventListener('change', (e) => {
+          AppState.deviceModel = e.target.value === 'auto' ? detectedName : e.target.value;
+          updateDeviceDisplay(AppState.deviceModel);
+          renderGameConfig();
+        });
+      }
+    }
+
+    function updateDeviceDisplay(modelName) {
+      const modelEl = document.getElementById('hudDeviceModel');
+      const labelEl = document.getElementById('currentDeviceLabel');
+      if (modelEl) modelEl.textContent = modelName;
+      if (labelEl) labelEl.textContent = modelName;
+    }
+
+    function initBatteryMonitor() {
+      const batteryValEl = document.getElementById('hudBatteryPercent');
+      const batteryStatusEl = document.getElementById('hudBatteryStatus');
+      const topBatteryEl = document.getElementById('topBatteryVal');
+      const batteryIcon = document.getElementById('batteryIcon');
+
+      if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+          const updateUI = () => {
+            const level = Math.round(battery.level * 100);
+            AppState.batteryPercent = level;
+            AppState.isCharging = battery.charging;
+            if (batteryValEl) batteryValEl.textContent = `${level}%`;
+            if (topBatteryEl) topBatteryEl.textContent = `${level}%`;
+            if (batteryStatusEl) batteryStatusEl.textContent = battery.charging ? '⚡ Charging (AC)' : 'Optimal Battery';
+            if (batteryIcon) {
+              if (battery.charging) batteryIcon.className = 'fa-solid fa-battery-charging text-green';
+              else if (level > 80) batteryIcon.className = 'fa-solid fa-battery-full text-green';
+              else if (level > 40) batteryIcon.className = 'fa-solid fa-battery-three-quarters text-cyan';
+              else batteryIcon.className = 'fa-solid fa-battery-empty text-red';
+            }
+          };
+          updateUI();
+          battery.addEventListener('levelchange', updateUI);
+          battery.addEventListener('chargingchange', updateUI);
+        }).catch(() => setFallbackBattery());
+      } else {
+        setFallbackBattery();
+      }
+    }
+
+    function setFallbackBattery() {
+      AppState.batteryPercent = null;
+      const batteryValEl = document.getElementById('hudBatteryPercent');
+      const topBatteryEl = document.getElementById('topBatteryVal');
+      const batteryStatusEl = document.getElementById('hudBatteryStatus');
+      if (batteryValEl) batteryValEl.textContent = AppState.isIos ? 'iOS Private' : 'N/A';
+      if (topBatteryEl) topBatteryEl.textContent = AppState.isIos ? 'iOS' : 'N/A';
+      if (batteryStatusEl) batteryStatusEl.textContent = AppState.isIos ? 'Apple Safari hides battery %' : 'Battery API unsupported';
+    }
+
+    function formatKeyExpiry(keyData) {
+      if (!keyData) return 'Active';
+      if (!keyData.expires_at) return 'Lifetime VIP';
+      const diffMs = new Date(keyData.expires_at).getTime() - Date.now();
+      if (diffMs <= 0) return 'Expired';
+      const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+      const hours = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+      const dateStr = new Date(keyData.expires_at).toLocaleDateString();
+      if (days > 0) return `${days}d ${hours}h left (until ${dateStr})`;
+      return `${hours}h left (expires today)`;
+    }
+
+    async function initAuthAndLicense(skipCloudFetch = false) {
+      const settings = window.AuraDB.getSettings();
+      const savedKey = localStorage.getItem('aura_active_vip_key');
+
+      if (settings.free_vip_enabled) {
+        activatePromotionalVipMode();
+        return;
+      }
+
+      if (savedKey) {
+        const res = await window.AuraDB.redeemKey(savedKey, AppState.hwid, skipCloudFetch);
+        if (res.success) {
+          activateVipMode(savedKey, res.keyData);
+        } else {
+          localStorage.removeItem('aura_active_vip_key');
+          setFreeMode();
+        }
+      } else {
+        setFreeMode();
+      }
+    }
+
+    // Re-verify VIP key expiry & 1-device lock whenever Firebase syncs
+    window.addEventListener('smooth_db_sync', () => {
+      initAuthAndLicense(true);
+    });
+
+    function activatePromotionalVipMode() {
+      AppState.tier = 'vip';
+      AppState.activeKey = 'PROMO-VIP-FREE';
+      const topBadge = document.getElementById('headerVipBadge');
+      if (topBadge) {
+        topBadge.className = 'badge-vip';
+        topBadge.innerHTML = '<i class="fa-solid fa-crown"></i> VIP UNLOCKED (FREE)';
+      }
+      const viewFree = document.getElementById('viewFree');
+      const viewVip = document.getElementById('viewVipActive');
+      if (viewFree) viewFree.classList.add('hidden');
+      if (viewVip) viewVip.classList.remove('hidden');
+      const disp = document.getElementById('activeKeyDisplay');
+      if (disp) disp.textContent = 'FREE VIP FOR ALL (ADMIN MASTER UNLOCKED)';
+      const expEl = document.getElementById('activeKeyExpiry');
+      if (expEl) expEl.textContent = 'Admin Promo Active';
+      renderGameConfig();
+    }
+
+    function activateVipMode(keyString, keyData) {
+      AppState.tier = 'vip';
+      AppState.activeKey = keyString;
+      AppState.activeKeyData = keyData || null;
+      const topBadge = document.getElementById('headerVipBadge');
+      if (topBadge) {
+        topBadge.className = 'badge-vip';
+        topBadge.innerHTML = '<i class="fa-solid fa-crown"></i> VIP ELITE';
+      }
+      document.getElementById('viewFree').classList.add('hidden');
+      document.getElementById('viewVipActive').classList.remove('hidden');
+      document.getElementById('activeKeyDisplay').textContent = keyString;
+      const expEl = document.getElementById('activeKeyExpiry');
+      if (expEl) expEl.textContent = formatKeyExpiry(keyData);
+      renderGameConfig();
+    }
+
+    function setFreeMode() {
+      AppState.tier = 'free';
+      AppState.activeKey = null;
+      const topBadge = document.getElementById('headerVipBadge');
+      if (topBadge) {
+        topBadge.className = 'badge-free';
+        topBadge.textContent = 'FREE TIER';
+      }
+      document.getElementById('viewFree').classList.remove('hidden');
+      document.getElementById('viewVipActive').classList.add('hidden');
+      renderGameConfig();
+    }
+
+    function initGameConfigs() {
+      const pills = document.querySelectorAll('.game-pill');
+      pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          pills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          AppState.selectedGame = pill.getAttribute('data-game');
+          renderGameConfig();
+        });
+      });
+
+      const launchBtn = document.getElementById('launchGameBtn');
+      if (launchBtn) {
+        launchBtn.addEventListener('click', () => triggerGameBoostAndLaunch(AppState.selectedGame));
+      }
+      renderGameConfig();
+    }
+
+    function triggerGameBoostAndLaunch(gameId) {
+      const game = GAME_CONFIGS[gameId] || GAME_CONFIGS.pubg;
+      const modal = document.getElementById('gameBoostModal');
+      const titleEl = document.getElementById('boostModalTitle');
+      if (titleEl) titleEl.textContent = `Optimizing for ${game.title}...`;
+      if (modal) modal.classList.remove('hidden');
+
+      setTimeout(() => {
+        if (game.urlScheme) window.location.href = game.urlScheme;
+        setTimeout(() => { if (modal) modal.classList.add('hidden'); }, 2500);
+      }, 1600);
+    }
+
+    function renderGameConfig() {
+      const container = document.getElementById('gameConfigBox');
+      const launchBtnText = document.getElementById('launchBtnText');
+      if (!container) return;
+
+      const game = GAME_CONFIGS[AppState.selectedGame] || GAME_CONFIGS.pubg;
+      const isVip = AppState.tier === 'vip';
+      const cfg = isVip ? game.vip : game.free;
+
+      if (launchBtnText) launchBtnText.textContent = `BOOST & LAUNCH ${game.title.toUpperCase()}`;
+
+      container.innerHTML = `
+        <div class="config-item-row"><span class="cfg-label">Graphics Quality</span><span class="cfg-value ${isVip ? 'text-green' : ''}">${cfg.graphics}</span></div>
+        <div class="config-item-row"><span class="cfg-label">Target Frame Rate</span><span class="cfg-value ${isVip ? 'text-green' : 'text-cyan'}">${cfg.frameRate}</span></div>
+        <div class="config-item-row"><span class="cfg-label">Render Resolution</span><span class="cfg-value">${cfg.resolution}</span></div>
+        <div class="config-item-row"><span class="cfg-label">Thermal Guard</span><span class="cfg-value ${isVip ? 'text-green' : ''}">${cfg.thermalTuning}</span></div>
+        <div class="config-item-row"><span class="cfg-label">Anti-Aliasing</span><span class="cfg-value">${cfg.antiAliasing}</span></div>
+        ${!isVip ? `
+          <div class="mt-3 text-center">
+            <button class="cyber-btn primary-glow btn-full" onclick="document.getElementById('openVipModalBtn').click()">
+              <i class="fa-solid fa-crown"></i> Unlock 120 FPS Extreme (VIP Key Required)
+            </button>
+          </div>
+        ` : `
+          <div class="mt-3 text-center">
+            <span class="text-green font-bold"><i class="fa-solid fa-check-double"></i> VIP Max Performance Profile Active</span>
+          </div>
+        `}
+      `;
+
+      renderRecoilPresetBox(game, isVip);
+    }
+
+    function renderRecoilPresetBox(game, isVip) {
+      const box = document.getElementById('recoilPresetBox');
+      if (!box) return;
+      const preset = SENSITIVITY_PRESETS[AppState.selectedGame] || SENSITIVITY_PRESETS.pubg;
+
+      if (!isVip) {
+        box.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong style="font-size:0.88rem; color:var(--cyan-neon);"><i class="fa-solid fa-crosshairs"></i> Pro Recoil & Sensitivity Preset</strong>
+            <span class="badge-vip-sm"><i class="fa-solid fa-lock"></i> VIP ONLY</span>
+          </div>
+          <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:10px;">
+            ${game.title} සඳහා ${AppState.deviceModel} වලට ගැළපෙන Legit Pro Sensitivity, Recoil Control & iOS Touch Presets ලබාගැනීමට VIP License Key එකක් ඇතුළත් කරන්න.
+          </p>
+          <button class="cyber-btn primary-glow btn-full" onclick="document.getElementById('openVipModalBtn').click()">
+            <i class="fa-solid fa-key"></i> Unlock Pro Sensitivity Preset
+          </button>
+        `;
+        return;
+      }
+
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <strong style="font-size:0.88rem; color:var(--cyan-neon);"><i class="fa-solid fa-crosshairs"></i> Pro Recoil & Sensitivity Preset</strong>
+          <span class="badge-vip-sm"><i class="fa-solid fa-crown"></i> VIP UNLOCKED</span>
+        </div>
+        <div class="config-item-row"><span class="cfg-label">General / Camera</span><span class="cfg-value text-green">${preset.general}</span></div>
+        <div class="config-item-row"><span class="cfg-label">Red Dot / ADS</span><span class="cfg-value text-cyan">${preset.redDot}</span></div>
+        <div class="config-item-row"><span class="cfg-label">2x Scope Control</span><span class="cfg-value">${preset.scope2x}</span></div>
+        <div class="config-item-row"><span class="cfg-label">4x Scope Control</span><span class="cfg-value">${preset.scope4x}</span></div>
+        <div class="config-item-row"><span class="cfg-label">iOS Touch Tuning</span><span class="cfg-value" style="font-size:0.75rem; text-align:right;">${preset.iosTouch}</span></div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="cyber-btn btn-full" style="background:rgba(0,242,254,0.14); border:1px solid rgba(0,242,254,0.35); color:#00f2fe; font-size:0.78rem; padding:10px;" onclick="copySensitivityPreset()">
+            <i class="fa-solid fa-copy"></i> Copy Preset
+          </button>
+          <button class="cyber-btn btn-full" style="background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.35); color:#10b981; font-size:0.78rem; padding:10px;" onclick="downloadSensitivityPreset()">
+            <i class="fa-solid fa-file-arrow-down"></i> Download Guide (.txt)
+          </button>
+        </div>
+      `;
+    }
+
+    window.copySensitivityPreset = function() {
+      if (AppState.tier !== 'vip') return;
+      const game = GAME_CONFIGS[AppState.selectedGame] || GAME_CONFIGS.pubg;
+      const p = SENSITIVITY_PRESETS[AppState.selectedGame] || SENSITIVITY_PRESETS.pubg;
+      const text = `Smooth iOS Optimizer v2 - ${game.title} Pro Sensitivity Preset (${AppState.deviceModel})\nGeneral: ${p.general}\nRed Dot: ${p.redDot}\n2x Scope: ${p.scope2x}\n4x Scope: ${p.scope4x}\niOS Touch: ${p.iosTouch}`;
+      navigator.clipboard.writeText(text).then(() => alert('✅ Pro Sensitivity Preset copied to clipboard!')).catch(() => alert(text));
+    };
+
+    window.downloadSensitivityPreset = function() {
+      if (AppState.tier !== 'vip') return;
+      const game = GAME_CONFIGS[AppState.selectedGame] || GAME_CONFIGS.pubg;
+      const p = SENSITIVITY_PRESETS[AppState.selectedGame] || SENSITIVITY_PRESETS.pubg;
+      const content = [
+        `==================================================`,
+        `  SMOOTH iOS OPTIMIZER v2 - PRO SENSITIVITY GUIDE`,
+        `==================================================`,
+        `Game        : ${game.title}`,
+        `Device      : ${AppState.deviceModel}`,
+        `Licensed To : ${AppState.hwid} (1-Device VIP)`,
+        `Active Key  : ${AppState.activeKey}`,
+        `--------------------------------------------------`,
+        `[IN-GAME SENSITIVITY & RECOIL CONTROL]`,
+        `• General / Camera : ${p.general}`,
+        `• Red Dot / ADS    : ${p.redDot}`,
+        `• 2x Scope         : ${p.scope2x}`,
+        `• 4x Scope         : ${p.scope4x}`,
+        ``,
+        `[iOS TOUCH & POINTER SETTINGS]`,
+        `• ${p.iosTouch}`,
+        `==================================================`
+      ].join('\n');
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Smooth_${AppState.selectedGame}_ProSensitivity_v2.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
+    function initDnsGenerator() {
+      const dnsCards = document.querySelectorAll('.dns-card');
+      dnsCards.forEach(card => {
+        card.addEventListener('click', () => {
+          dnsCards.forEach(c => {
+            c.classList.remove('active');
+            c.querySelector('.dns-radio i').className = 'fa-regular fa-circle';
+          });
+          card.classList.add('active');
+          card.querySelector('.dns-radio i').className = 'fa-solid fa-circle-check';
+          AppState.selectedDns = card.getAttribute('data-dns');
+        });
+      });
+
+      const downloadBtn = document.getElementById('downloadDnsBtn');
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+          const isVipRequired = AppState.selectedDns === 'adguard-vip' || AppState.selectedDns === 'quad9-vip';
+          if (isVipRequired && AppState.tier !== 'vip') {
+            alert('VIP Gaming DNS ලබාගැනීමට VIP License Key එකක් අවශ්‍යයි!');
+            document.getElementById('vipKeyModal').classList.remove('hidden');
+            return;
+          }
+          generateAndDownloadMobileConfig(AppState.selectedDns);
+        });
+      }
+
+      const webClipBtn = document.getElementById('downloadWebClipBtn');
+      if (webClipBtn) {
+        webClipBtn.addEventListener('click', () => {
+          downloadWebClipMobileConfig();
+        });
+      }
+    }
+
+    function deliverMobileConfig(xmlContent, filename) {
+      if (AppState.isIos) {
+        const base64Config = btoa(unescape(encodeURIComponent(xmlContent)));
+        window.location.href = `data:application/x-apple-aspen-config;base64,${base64Config}`;
+      } else {
+        const blob = new Blob([xmlContent], { type: 'application/x-apple-aspen-config' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 15000);
+      }
+    }
+
+    function generateAndDownloadMobileConfig(dnsType) {
+      const dnsProfiles = {
+        'cloudflare': {
+          name: 'Smooth Cloudflare 1.1.1.1 Gaming DNS',
+          dohUrl: 'https://cloudflare-dns.com/dns-query',
+          ips: ['1.1.1.1', '1.0.0.1'],
+          file: 'SmoothCloudflareDNS.mobileconfig'
+        },
+        'google-dns': {
+          name: 'Smooth Google 8.8.8.8 Gaming DNS',
+          dohUrl: 'https://dns.google/dns-query',
+          ips: ['8.8.8.8', '8.8.4.4'],
+          file: 'SmoothGoogleDNS.mobileconfig'
+        },
+        'adguard-vip': {
+          name: 'Smooth VIP Anti-Ad Gaming DNS',
+          dohUrl: 'https://dns.adguard-dns.com/dns-query',
+          ips: ['94.140.14.14', '94.140.15.15'],
+          file: 'SmoothAdGuardVIP.mobileconfig'
+        },
+        'quad9-vip': {
+          name: 'Smooth Quad9 VIP Secure Gaming DNS',
+          dohUrl: 'https://dns.quad9.net/dns-query',
+          ips: ['9.9.9.9', '149.112.112.112'],
+          file: 'SmoothQuad9VIP.mobileconfig'
+        }
+      };
+
+      const cfg = dnsProfiles[dnsType] || dnsProfiles['cloudflare'];
+      const uuid1 = 'SMOOTH-DNS-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+      const uuid2 = 'PAYLOAD-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+
+      // Auto-Expiry (Apple RemovalDate): automatically uninstalls DNS profile from iPhone when VIP Key expires!
+      let removalDateXml = '';
+      let expiryNote = 'High-speed low latency gaming DNS optimized for iOS.';
+      const keyData = AppState.activeKeyData;
+      if (keyData && keyData.expires_at) {
+        const expIso = new Date(keyData.expires_at).toISOString().replace(/\.\d{3}Z$/, 'Z');
+        removalDateXml = `\n    <key>RemovalDate</key><date>${expIso}</date>`;
+        expiryNote = `Smooth VIP Gaming DNS (Auto-expires on ${new Date(keyData.expires_at).toLocaleDateString()}).`;
+      } else if (!(keyData && keyData.plan === 'lifetime')) {
+        // Free / Promo users: auto-expire profile after 3 days so they return to the website
+        const threeDaysIso = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+        removalDateXml = `\n    <key>RemovalDate</key><date>${threeDaysIso}</date>`;
+        expiryNote = 'Smooth Gaming DNS Trial Profile (Auto-expires in 3 days).';
+      }
+
+      const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadDisplayName</key><string>${cfg.name}</string>
+    <key>PayloadIdentifier</key><string>com.smooth.optimizer.dns.${uuid1}</string>
+    <key>PayloadRemovalDisallowed</key><false/>
+    <key>PayloadType</key><string>Configuration</string>
+    <key>PayloadUUID</key><string>${uuid1}</string>
+    <key>PayloadVersion</key><integer>1</integer>${removalDateXml}
+    <key>PayloadDescription</key><string>${expiryNote}</string>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>DNSSettings</key>
+            <dict>
+                <key>DNSProtocol</key><string>HTTPS</string>
+                <key>ServerURL</key><string>${cfg.dohUrl}</string>
+                <key>ServerAddresses</key>
+                <array><string>${cfg.ips[0]}</string><string>${cfg.ips[1]}</string></array>
+            </dict>
+            <key>PayloadDisplayName</key><string>Encrypted DNS Settings</string>
+            <key>PayloadIdentifier</key><string>com.smooth.optimizer.dns.payload.${uuid2}</string>
+            <key>PayloadType</key><string>com.apple.dnsSettings.managed</string>
+            <key>PayloadUUID</key><string>${uuid2}</string>
+            <key>PayloadVersion</key><integer>1</integer>
+        </dict>
+    </array>
+</dict>
+</plist>`;
+
+      deliverMobileConfig(xmlContent, cfg.file);
+    }
+
+    function downloadWebClipMobileConfig() {
+      const appUrl = window.location.href.split('#')[0];
+      const uuid1 = 'SMOOTH-APP-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+      const uuid2 = 'WEBCLIP-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+
+      const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadDisplayName</key><string>Smooth iOS Optimizer App</string>
+    <key>PayloadIdentifier</key><string>com.smooth.optimizer.app.${uuid1}</string>
+    <key>PayloadRemovalDisallowed</key><false/>
+    <key>PayloadType</key><string>Configuration</string>
+    <key>PayloadUUID</key><string>${uuid1}</string>
+    <key>PayloadVersion</key><integer>1</integer>
+    <key>PayloadDescription</key><string>Adds Smooth iOS Optimizer as a native full-screen app icon on your iPhone Home Screen.</string>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>FullScreen</key><true/>
+            <key>IgnoreManifestScope</key><true/>
+            <key>IsRemovable</key><true/>
+            <key>Label</key><string>Smooth iOS</string>
+            <key>URL</key><string>${appUrl.replace(/&/g, '&amp;')}</string>
+            <key>PayloadDisplayName</key><string>Smooth iOS Home Screen Icon</string>
+            <key>PayloadIdentifier</key><string>com.smooth.optimizer.webclip.${uuid2}</string>
+            <key>PayloadType</key><string>com.apple.webClip.managed</string>
+            <key>PayloadUUID</key><string>${uuid2}</string>
+            <key>PayloadVersion</key><integer>1</integer>
+        </dict>
+    </array>
+</dict>
+</plist>`;
+
+      deliverMobileConfig(xmlContent, 'SmoothOptimizerApp.mobileconfig');
+    }
+
+    function initPingRadar() {
+      const container = document.getElementById('pingServerList');
+      const refreshBtn = document.getElementById('refreshPingBtn');
+      const bestBanner = document.getElementById('bestServerBanner');
+      const bestText = document.getElementById('bestServerText');
+      let bestResult = null;
+
+      const measureServerPing = async (server) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+        try {
+          // Warm-up connection so TLS handshake doesn't skew latency
+          await fetch(`${server.url}?w=${Date.now()}`, { mode: 'no-cors', cache: 'no-store', signal: controller.signal });
+          const t0 = performance.now();
+          await fetch(`${server.url}?p=${Date.now()}`, { mode: 'no-cors', cache: 'no-store', signal: controller.signal });
+          const rtt = Math.round(performance.now() - t0);
+          clearTimeout(timer);
+          finishPing(server, Math.max(1, rtt));
+        } catch (err) {
+          clearTimeout(timer);
+          finishPing(server, null);
+        }
+      };
+
+      const runPingTests = () => {
+        if (!container) return;
+        bestResult = null;
+        if (bestBanner) bestBanner.style.display = 'none';
+        container.innerHTML = '';
+        PING_SERVERS.forEach(server => {
+          const itemEl = document.createElement('div');
+          itemEl.className = 'ping-item';
+          itemEl.innerHTML = `
+            <div class="server-info"><span class="flag-icon">${server.flag}</span><div><div class="server-name">${server.name}</div><div class="server-loc">${server.location}</div></div></div>
+            <div class="ping-result-badge" id="pingBadge-${server.id}">Testing...</div>
+          `;
+          container.appendChild(itemEl);
+          measureServerPing(server);
+        });
+      };
+
+      const finishPing = (server, ms) => {
+        const badge = document.getElementById(`pingBadge-${server.id}`);
+        if (!badge) return;
+        if (ms === null) {
+          badge.textContent = 'Timeout';
+          badge.style.color = '#ef4444';
+          return;
+        }
+        badge.textContent = `${ms} ms`;
+        if (ms < 80) {
+          badge.style.color = '#10b981';
+        } else if (ms < 160) {
+          badge.style.color = '#f59e0b';
+        } else {
+          badge.style.color = '#ef4444';
+        }
+        if (!bestResult || ms < bestResult.ms) {
+          bestResult = { server, ms };
+          if (bestBanner && bestText) {
+            bestBanner.style.display = 'block';
+            bestText.textContent = `Best Server: ${server.name} (${ms} ms) — Lowest Ping!`;
+          }
+        }
+        if (server.id === 'sg') {
+          AppState.currentPing = ms;
+          const hudPing = document.getElementById('hudPingVal');
+          if (hudPing) hudPing.textContent = `${ms} ms`;
+        }
+      };
+
+      if (refreshBtn) refreshBtn.addEventListener('click', runPingTests);
+      runPingTests();
+    }
+
+    function initNativeTouchFeel() {
+      // Subtle haptic pulse on supported devices for crisp tactile feedback
+      document.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('button, .tool-tab, .game-pill, .dns-card, .cyber-btn')) {
+          if (navigator.vibrate) {
+            try { navigator.vibrate(10); } catch (_) {}
+          }
+        }
+      }, { passive: true });
+    }
+
+    function initTouchCalibrationLab() {
+      const canvas = document.getElementById('touchCalibrationCanvas');
+      const wrap = document.getElementById('touchPadWrap');
+      const hint = document.getElementById('touchPadHint');
+      const hzEl = document.getElementById('touchHzVal');
+      const msEl = document.getElementById('touchMsVal');
+      const speedEl = document.getElementById('touchSpeedVal');
+      const calibText = document.getElementById('touchCalibText');
+      const resetBtn = document.getElementById('resetTouchPadBtn');
+      if (!canvas || !wrap) return;
+
+      const ctx = canvas.getContext('2d');
+      let points = [];
+      let ripples = [];
+      let isDrawing = false;
+      let lastPoint = null;
+      let deltas = [];
+      let peakSpeed = 0;
+
+      function resizeCanvas() {
+        const rect = wrap.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // Ensure canvas resizes properly when user opens Touch Lab tab
+      document.querySelectorAll('.tool-tab[data-tab="tab-touch"]').forEach(btn => {
+        btn.addEventListener('click', () => setTimeout(resizeCanvas, 50));
+      });
+
+      function getCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top, t: performance.now() };
+      }
+
+      function updateMetrics(pt) {
+        if (lastPoint) {
+          const dt = pt.t - lastPoint.t;
+          if (dt > 1 && dt < 200) {
+            deltas.push(dt);
+            if (deltas.length > 24) deltas.shift();
+            const avgDt = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+            const hz = Math.min(240, Math.round(1000 / avgDt));
+            if (hzEl) hzEl.textContent = `${hz} Hz`;
+            if (msEl) msEl.textContent = `${avgDt.toFixed(1)} ms`;
+
+            const dist = Math.hypot(pt.x - lastPoint.x, pt.y - lastPoint.y);
+            const speed = Math.round((dist / dt) * 1000);
+            if (speed > peakSpeed) peakSpeed = speed;
+            if (speedEl) speedEl.textContent = `${speed} px/s`;
+
+            if (calibText) {
+              if (peakSpeed >= 1800) {
+                calibText.innerHTML = `<span class="text-cyan">Fast Drag Detected (${peakSpeed} px/s):</span> Recommended General <strong>178–186</strong> • Red Dot <strong>172</strong> • iOS Pointer Speed <strong>85</strong>`;
+              } else if (peakSpeed >= 900) {
+                calibText.innerHTML = `<span class="text-green">Balanced Drag Detected (${peakSpeed} px/s):</span> Recommended General <strong>188–194</strong> • Red Dot <strong>184</strong> • iOS Pointer Speed <strong>100</strong>`;
+              } else {
+                calibText.innerHTML = `<span class="text-amber">Steady Precision Drag (${peakSpeed} px/s):</span> Recommended General <strong>196–200</strong> • Red Dot <strong>190</strong> • iOS Pointer Speed <strong>112</strong>`;
+              }
+            }
+          }
+        }
+        lastPoint = pt;
+      }
+
+      function onStart(e) {
+        e.preventDefault();
+        resizeCanvas();
+        isDrawing = true;
+        if (hint) hint.style.opacity = '0';
+        const pt = getCoords(e);
+        lastPoint = pt;
+        points.push({ x: pt.x, y: pt.y, life: 1 });
+        ripples.push({ x: pt.x, y: pt.y, r: 6, alpha: 0.9 });
+        if (navigator.vibrate) { try { navigator.vibrate(12); } catch (_) {} }
+      }
+
+      function onMove(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pt = getCoords(e);
+        updateMetrics(pt);
+        points.push({ x: pt.x, y: pt.y, life: 1 });
+        if (points.length > 60) points.shift();
+      }
+
+      function onEnd() {
+        isDrawing = false;
+        lastPoint = null;
+      }
+
+      canvas.addEventListener('touchstart', onStart, { passive: false });
+      canvas.addEventListener('touchmove', onMove, { passive: false });
+      canvas.addEventListener('touchend', onEnd);
+      canvas.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'touch') onStart(e); });
+      canvas.addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') onMove(e); });
+      canvas.addEventListener('pointerup', onEnd);
+      canvas.addEventListener('pointerleave', onEnd);
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          points = [];
+          ripples = [];
+          deltas = [];
+          peakSpeed = 0;
+          lastPoint = null;
+          if (hzEl) hzEl.textContent = '-- Hz';
+          if (msEl) msEl.textContent = '-- ms';
+          if (speedEl) speedEl.textContent = '0 px/s';
+          if (hint) hint.style.opacity = '1';
+          if (calibText) calibText.textContent = 'Pad එකේ swipe කළ සැනින් ඔබේ ඇඟිල්ලට ගැළපෙන Sensitivity සහ iOS Touch Speed මෙතන පෙන්නයි.';
+        });
+      }
+
+      function renderLoop() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        if (w > 0 && h > 0) {
+          ctx.clearRect(0, 0, w, h);
+
+          // Draw neon drag trail
+          for (let i = 1; i < points.length; i++) {
+            const p0 = points[i - 1];
+            const p1 = points[i];
+            ctx.beginPath();
+            ctx.moveTo(p0.x, p0.y);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.strokeStyle = `rgba(0, 242, 254, ${p1.life})`;
+            ctx.lineWidth = 4 * p1.life;
+            ctx.lineCap = 'round';
+            ctx.shadowColor = '#00f2fe';
+            ctx.shadowBlur = 12;
+            ctx.stroke();
+          }
+          ctx.shadowBlur = 0;
+
+          // Fade trail points
+          for (let i = points.length - 1; i >= 0; i--) {
+            points[i].life -= 0.035;
+            if (points[i].life <= 0) points.splice(i, 1);
+          }
+
+          // Draw expanding touch ripples
+          for (let i = ripples.length - 1; i >= 0; i--) {
+            const rp = ripples[i];
+            ctx.beginPath();
+            ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(157, 78, 221, ${rp.alpha})`;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            rp.r += 2.6;
+            rp.alpha -= 0.035;
+            if (rp.alpha <= 0) ripples.splice(i, 1);
+          }
+        }
+        requestAnimationFrame(renderLoop);
+      }
+      requestAnimationFrame(renderLoop);
+    }
+
+    function initVersionAndAnnouncements() {
+      const checkSettings = () => {
+        const settings = window.AuraDB.getSettings();
+        const remoteVer = settings.latest_version || settings.v || '2';
+        const vNum = parseFloat(String(remoteVer).replace(/[^0-9.]/g, ''));
+
+        // STRICT RULE: Only show update alert modal if version is 3 or higher (Current App = Version 2)!
+        const isUpdateNeeded = !isNaN(vNum) && vNum >= 3;
+
+        const modal = document.getElementById('versionUpdateModal');
+        const newVTag = document.getElementById('newVersionTag');
+        const newVNotes = document.getElementById('newVersionNotes');
+        const viewport = document.querySelector('.app-viewport');
+
+        if (isUpdateNeeded) {
+          document.documentElement.classList.add('app-force-locked');
+          localStorage.setItem('smooth_force_locked', 'true');
+          document.body.style.overflow = 'hidden';
+          if (modal) modal.classList.remove('hidden');
+          if (viewport) viewport.style.display = 'none';
+          if (newVTag) newVTag.textContent = `Version ${vNum}`;
+          if (newVNotes) newVNotes.textContent = settings.version_notes || 'Smooth Game Engine Version 3 නිකුත් කර ඇත. පැරණි Version 2 භාවිතා කළ නොහැක. කරුණාකර අලුත් Version 3 ලබාගන්න.';
+        } else {
+          document.documentElement.classList.remove('app-force-locked');
+          localStorage.removeItem('smooth_force_locked');
+          document.body.style.overflow = '';
+          if (modal) modal.classList.add('hidden');
+          if (viewport) {
+            viewport.style.display = '';
+            viewport.style.filter = '';
+            viewport.style.pointerEvents = '';
+            viewport.style.userSelect = '';
+          }
+        }
+
+        // Live Announcement Banner
+        const banner = document.getElementById('announcementBanner');
+        const bannerText = document.getElementById('announcementText');
+        if (banner && bannerText && settings.announcement) {
+          if (settings.announcement.active && settings.announcement.message && !isUpdateNeeded) {
+            bannerText.textContent = settings.announcement.message;
+            banner.classList.remove('hidden');
+          } else {
+            banner.classList.add('hidden');
+          }
+        }
+
+        // Free VIP Master Switch
+        if (settings.free_vip_enabled && !isUpdateNeeded) {
+          if (AppState.tier !== 'vip') {
+            activatePromotionalVipMode();
+          }
+        } else {
+          if (AppState.tier === 'vip' && !localStorage.getItem('aura_active_vip_key')) {
+            setFreeMode();
+          }
+        }
+        const shortcutBtn = document.getElementById('shortcutLinkBtn');
+        if (shortcutBtn) {
+          if (settings.shortcut_url && settings.shortcut_url.trim().startsWith('http')) {
+            shortcutBtn.href = settings.shortcut_url.trim();
+            shortcutBtn.target = '_blank';
+            shortcutBtn.innerHTML = '<i class="fa-brands fa-apple"></i> Install "Smooth Gaming Mode" Shortcut (1-Tap)';
+          } else {
+            shortcutBtn.href = 'shortcuts://create-shortcut';
+            shortcutBtn.removeAttribute('target');
+            shortcutBtn.innerHTML = '<i class="fa-brands fa-apple"></i> Open Apple Shortcuts Editor (iPhone)';
+          }
+        }
+      };
+
+      window.copyShortcutRecipe = function() {
+        const recipe = [
+          'Smooth Gaming Mode - Apple Shortcut (6 Actions):',
+          '1. Set Low Power Mode -> Off',
+          '2. Set Focus -> Gaming / Do Not Disturb On',
+          '3. Set Brightness -> 70% & True Tone -> Off',
+          '4. Set Orientation Lock -> On',
+          '5. Set Bluetooth -> Off (optional)',
+          '6. Open App -> PUBG Mobile / Free Fire / CODM'
+        ].join('\n');
+        navigator.clipboard.writeText(recipe).then(() => alert('✅ Shortcut 6-Action Recipe Copied!')).catch(() => alert(recipe));
+      };
+
+      checkSettings();
+      window.addEventListener('smooth_db_sync', checkSettings);
+      setInterval(checkSettings, 1000);
+
+      const acceptUpdateBtn = document.getElementById('acceptUpdateBtn');
+      if (acceptUpdateBtn) {
+        acceptUpdateBtn.addEventListener('click', () => {
+          const settings = window.AuraDB.getSettings();
+          if (settings.update_url && settings.update_url.trim().startsWith('http')) {
+            window.location.href = settings.update_url.trim();
+          } else {
+            alert('🚨 Version 3 Update Required!\n\nපැරණි Version 2 සම්පූර්ණයෙන්ම අක්‍රිය කර ඇත.\nනව Version 3 Link එක ලබාගැනීමට කරුණාකර Admin / Owner සම්බන්ධ කරගන්න.');
+          }
+        });
+      }
+
+      const closeAnnBtn = document.getElementById('closeAnnouncementBtn');
+      if (closeAnnBtn) {
+        closeAnnBtn.addEventListener('click', () => {
+          const banner = document.getElementById('announcementBanner');
+          if (banner) banner.classList.add('hidden');
+        });
+      }
+    }
+
+    function initInlineAdminControls() {
+      const openBtn = document.getElementById('openAdminModalBtn');
+      const closeBtn = document.getElementById('closeAdminModalBtn');
+      const adminModal = document.getElementById('adminModal');
+      const loginSection = document.getElementById('adminInlineLogin');
+      const dashSection = document.getElementById('adminInlineDashboard');
+      const loginBtn = document.getElementById('adminInlineLoginBtn');
+      const passInput = document.getElementById('adminInlinePassInput');
+      const errorMsg = document.getElementById('adminInlineError');
+      const logoutBtn = document.getElementById('adminInlineLogoutBtn');
+
+      function updateInlineDashboardView() {
+        const settings = window.AuraDB.getSettings();
+        const verDisplay = document.getElementById('adminVerDisplay');
+        const customInput = document.getElementById('adminCustomVerInput');
+        const vipToggle = document.getElementById('adminFreeVipToggle');
+        const vipBadge = document.getElementById('adminFreeVipBadge');
+        const announceInput = document.getElementById('adminAnnouncementInput');
+        const announceCheck = document.getElementById('adminAnnouncementActive');
+
+        const curVer = settings.latest_version || settings.v || settings.lastv || '2';
+        if (verDisplay) {
+          verDisplay.textContent = `v${curVer}`;
+          if (parseFloat(curVer) >= 3) {
+            verDisplay.className = 'admin-ver-display locked';
+          } else {
+            verDisplay.className = 'admin-ver-display unlocked';
+          }
+        }
+        if (customInput && document.activeElement !== customInput) customInput.value = curVer;
+
+        const isFreeVip = !!settings.free_vip_enabled;
+        if (vipToggle) vipToggle.checked = isFreeVip;
+        if (vipBadge) {
+          vipBadge.textContent = isFreeVip ? 'ON' : 'OFF';
+          vipBadge.className = isFreeVip ? 'admin-status-pill on' : 'admin-status-pill off';
+        }
+
+        if (announceInput && document.activeElement !== announceInput && settings.announcement) {
+          announceInput.value = settings.announcement.message || '';
+        }
+        if (announceCheck && settings.announcement) {
+          announceCheck.checked = !!settings.announcement.active;
+        }
+      }
+
+      function showInlineAdmin() {
+        if (!adminModal) return;
+        const isLogged = sessionStorage.getItem('smooth_admin_logged_in') === 'true';
+        if (isLogged) {
+          if (loginSection) loginSection.classList.add('hidden');
+          if (dashSection) dashSection.classList.remove('hidden');
+          updateInlineDashboardView();
+        } else {
+          if (loginSection) loginSection.classList.remove('hidden');
+          if (dashSection) dashSection.classList.add('hidden');
+          if (passInput) passInput.value = '';
+          if (errorMsg) errorMsg.classList.add('hidden');
+        }
+        adminModal.classList.remove('hidden');
+      }
+
+      if (openBtn) openBtn.addEventListener('click', showInlineAdmin);
+      if (closeBtn) closeBtn.addEventListener('click', () => adminModal && adminModal.classList.add('hidden'));
+
+      if (adminModal) {
+        adminModal.addEventListener('click', (e) => {
+          if (e.target === adminModal) adminModal.classList.add('hidden');
+        });
+      }
+
+      if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+          const pass = passInput ? passInput.value.trim() : '';
+          if (pass === '0776172952') {
+            sessionStorage.setItem('smooth_admin_logged_in', 'true');
+            if (errorMsg) errorMsg.classList.add('hidden');
+            showInlineAdmin();
+          } else {
+            if (errorMsg) errorMsg.classList.remove('hidden');
+          }
+        });
+      }
+
+      if (passInput) {
+        passInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            if (loginBtn) loginBtn.click();
+          }
+        });
+      }
+
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          sessionStorage.removeItem('smooth_admin_logged_in');
+          showInlineAdmin();
+        });
+      }
+
+      // Version 2 Unlock
+      const setV1Btn = document.getElementById('adminSetV1Btn');
+      if (setV1Btn) {
+        setV1Btn.addEventListener('click', async () => {
+          await window.AuraDB.updateSettings({ latest_version: '2', v: '2', lastv: '2' });
+          alert('✅ Version set to 2! App unlocked.');
+          updateInlineDashboardView();
+        });
+      }
+
+      // Version 3 Lock
+      const setV2Btn = document.getElementById('adminSetV2Btn');
+      if (setV2Btn) {
+        setV2Btn.addEventListener('click', async () => {
+          await window.AuraDB.updateSettings({ latest_version: '3', v: '3', lastv: '3' });
+          alert('🚨 Version set to 3! Force update lock activated.');
+          updateInlineDashboardView();
+        });
+      }
+
+      // Custom Version Button
+      const setCustomBtn = document.getElementById('adminSetCustomVerBtn');
+      if (setCustomBtn) {
+        setCustomBtn.addEventListener('click', async () => {
+          const customInput = document.getElementById('adminCustomVerInput');
+          const val = customInput ? customInput.value.trim() : '';
+          if (!val) return alert('Enter a version number first');
+          await window.AuraDB.updateSettings({ latest_version: val, v: val, lastv: val });
+          alert(`🚀 Version ${val} pushed to Firebase!`);
+          updateInlineDashboardView();
+        });
+      }
+
+      // Free VIP Master Switch
+      const freeVipToggle = document.getElementById('adminFreeVipToggle');
+      if (freeVipToggle) {
+        freeVipToggle.addEventListener('change', async (e) => {
+          const isEnabled = e.target.checked;
+          await window.AuraDB.updateSettings({ free_vip_enabled: isEnabled });
+          updateInlineDashboardView();
+          if (isEnabled) {
+            alert('🎉 Free-to-VIP Mode ON! All Free users now have 100% full VIP access in real time.');
+          } else {
+            alert('🔒 Free-to-VIP Mode OFF.');
+          }
+        });
+      }
+
+      // Announcement Push
+      const pushAnnounceBtn = document.getElementById('adminPushAnnouncementBtn');
+      if (pushAnnounceBtn) {
+        pushAnnounceBtn.addEventListener('click', async () => {
+          const msgInput = document.getElementById('adminAnnouncementInput');
+          const activeCheck = document.getElementById('adminAnnouncementActive');
+          const message = msgInput ? msgInput.value.trim() : '';
+          const active = activeCheck ? activeCheck.checked : true;
+          await window.AuraDB.updateSettings({
+            announcement: { message, active }
+          });
+          alert('📢 Announcement banner updated across all clients!');
+        });
+      }
+
+      // Quick Key Generator
+      const genKeyBtn = document.getElementById('adminGenKeyBtn');
+      if (genKeyBtn) {
+        genKeyBtn.addEventListener('click', async () => {
+          const planSelect = document.getElementById('adminKeyPlanSelect');
+          const plan = planSelect ? planSelect.value : '30_days';
+          const keyObj = await window.AuraDB.generateKey(plan, 'Generated via Inline Admin');
+          const resultBox = document.getElementById('adminGenKeyResult');
+          if (resultBox) {
+            resultBox.innerHTML = `
+              <div><strong>New Key Generated:</strong></div>
+              <div style="font-size: 1rem; margin: 4px 0; font-weight: bold;">${keyObj.key}</div>
+              <button type="button" class="cyber-btn primary-glow" style="padding: 4px 10px; font-size: 0.75rem;" onclick="navigator.clipboard.writeText('${keyObj.key}'); alert('Key copied: ${keyObj.key}');">
+                <i class="fa-solid fa-copy"></i> Copy Key
+              </button>
+            `;
+            resultBox.classList.remove('hidden');
+          }
+        });
+      }
+
+      window.addEventListener('smooth_db_sync', () => {
+        if (adminModal && !adminModal.classList.contains('hidden')) {
+          updateInlineDashboardView();
+        }
+      });
+    }
+
+    function startHeartbeat() {
+      const sendBeat = () => {
+        window.AuraDB.sendDeviceHeartbeat({
+          hwid: AppState.hwid,
+          device_model: AppState.deviceModel,
+          battery_percent: AppState.batteryPercent || 88,
+          is_charging: AppState.isCharging,
+          tier: AppState.tier,
+          active_key: AppState.activeKey || 'FREE-USER',
+          ping: AppState.currentPing
+        });
+      };
+      sendBeat();
+      setInterval(sendBeat, 10000);
+    }
+
+    function setupEventListeners() {
+      const toolTabs = document.querySelectorAll('.tool-tab');
+      toolTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          toolTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const targetPane = tab.getAttribute('data-tab');
+          document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+          const activePane = document.getElementById(targetPane);
+          if (activePane) activePane.classList.add('active');
+        });
+      });
+
+      const openModalBtn = document.getElementById('openVipModalBtn');
+      const closeModalBtn = document.getElementById('closeVipModalBtn');
+      const vipModal = document.getElementById('vipKeyModal');
+      const activateBtn = document.getElementById('activateKeyBtn');
+      const keyInput = document.getElementById('vipKeyInput');
+      const errorBox = document.getElementById('vipKeyError');
+      const errorText = document.getElementById('vipKeyErrorText');
+
+      if (openModalBtn) openModalBtn.addEventListener('click', () => vipModal.classList.remove('hidden'));
+      if (closeModalBtn) closeModalBtn.addEventListener('click', () => vipModal.classList.add('hidden'));
+
+      if (activateBtn && keyInput) {
+        activateBtn.addEventListener('click', async () => {
+          const code = keyInput.value.trim();
+          if (!code) return;
+          activateBtn.disabled = true;
+          const oldHtml = activateBtn.innerHTML;
+          activateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying with Cloud...';
+          if (errorBox) errorBox.classList.add('hidden');
+
+          const result = await window.AuraDB.redeemKey(code, AppState.hwid);
+
+          activateBtn.disabled = false;
+          activateBtn.innerHTML = oldHtml;
+
+          if (result.success) {
+            localStorage.setItem('aura_active_vip_key', code);
+            activateVipMode(code, result.keyData);
+            vipModal.classList.add('hidden');
+            alert('🎉 ' + result.message);
+          } else {
+            if (errorBox && errorText) {
+              errorText.textContent = result.message;
+              errorBox.classList.remove('hidden');
+            }
+          }
+        });
+      }
+
+      const unlinkBtn = document.getElementById('unlinkKeyBtn');
+      if (unlinkBtn) {
+        unlinkBtn.addEventListener('click', () => {
+          if (confirm('Are you sure you want to logout your VIP Key?')) {
+            localStorage.removeItem('aura_active_vip_key');
+            setFreeMode();
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>
